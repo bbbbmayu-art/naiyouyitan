@@ -76,13 +76,16 @@
                     { id: 'daily', name: '☀️ 每日待办', count: getDailyCount() },
                     { id: 'calendar', name: '📅 滴答日历', count: 0 },
                     { id: 'habits', name: '⚡ 习惯打卡', count: habits.length },
-                    { id: 'review', name: '📊 四维复盘', count: 0 }
+                    { id: 'review', name: '📊 四维复盘', count: 0 },
+                    { id: 'trash', name: '🗑️ 待办垃圾桶', count: trashTasks.length }
                 ]">
                     <button @click="currentView = view.id; sidebarOpen = false"
                             :class="currentView === view.id ? 'bg-white text-pink-600 shadow-sm font-semibold' : 'text-gray-600 hover:bg-white/50'"
                             class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all">
                         <span x-text="view.name"></span>
-                        <span x-show="view.count > 0" class="text-xs px-2 py-0.5 rounded-full bg-pink-100 text-pink-600 font-medium" x-text="view.count"></span>
+                        <span x-show="view.count > 0" 
+                              :class="view.id === 'trash' ? 'bg-gray-200 text-gray-600' : 'bg-pink-100 text-pink-600'" 
+                              class="text-xs px-2 py-0.5 rounded-full font-medium" x-text="view.count"></span>
                     </button>
                 </template>
             </div>
@@ -101,26 +104,27 @@
                     </div>
                 </div>
 
-                <!-- 根目录清单列表（含上下移动箭头） -->
+                <!-- 根目录清单列表（含上下移动箭头及删除防护） -->
                 <div class="space-y-1 mt-1">
-                    <template x-for="(list, index) in lists.filter(l => !l.folderId)" :key="list.id">
+                    <template x-for="list in lists.filter(l => !l.folderId)" :key="list.id">
                         <div class="group flex items-center justify-between px-3 py-2 rounded-xl text-sm hover:bg-white/60 transition-colors"
                              :class="currentView === 'list_' + list.id ? 'bg-white text-pink-600 font-semibold shadow-sm' : 'text-gray-600'">
                             <div @click="currentView = 'list_' + list.id; sidebarOpen = false" class="flex items-center space-x-2.5 flex-1 cursor-pointer truncate">
                                 <span class="w-3 h-3 rounded-full flex-shrink-0" :style="'background-color: ' + (list.color || '#FF8FAB')"></span>
                                 <span class="truncate" x-text="list.name"></span>
                             </div>
-                            <!-- 上下移动与编辑按钮 -->
+                            <!-- 上下移动、编辑与安全删除按钮 -->
                             <div class="hidden group-hover:flex items-center space-x-1 text-xs text-gray-400">
                                 <button @click.stop="moveRootList(list.id, -1)" class="hover:text-pink-600 px-0.5" title="上移">▲</button>
                                 <button @click.stop="moveRootList(list.id, 1)" class="hover:text-pink-600 px-0.5" title="下移">▼</button>
                                 <button @click.stop="editListOrFolder(list)" class="hover:text-pink-600 ml-1" title="编辑">✏️</button>
+                                <button @click.stop="confirmDeleteList(list)" class="hover:text-red-500 ml-0.5" title="删除清单">×</button>
                             </div>
                         </div>
                     </template>
                 </div>
 
-                <!-- 带有文件夹的嵌套结构（含文件夹及内部清单上下移动箭头） -->
+                <!-- 带有文件夹的嵌套结构 -->
                 <template x-for="(folder, fIndex) in folders" :key="folder.id">
                     <div class="mt-3 space-y-1">
                         <div class="group flex items-center justify-between px-3 py-1.5 text-xs font-bold text-gray-500 bg-pink-100/40 rounded-lg">
@@ -129,10 +133,10 @@
                                 <span class="truncate" x-text="folder.name"></span>
                             </div>
                             <div class="hidden group-hover:flex items-center space-x-1 text-gray-400">
-                                <button @click.stop="moveFolder(fIndex, -1)" class="hover:text-pink-600" title="文件夹上移">▲</button>
-                                <button @click.stop="moveFolder(fIndex, 1)" class="hover:text-pink-600" title="文件夹下移">▼</button>
-                                <button @click="editListOrFolder(folder)" class="hover:text-pink-600 ml-1">✏️</button>
-                                <button @click="deleteFolder(folder.id)" class="hover:text-red-500">×</button>
+                                <button @click.stop="moveFolder(fIndex, -1)" class="hover:text-pink-600 px-0.5" title="文件夹上移">▲</button>
+                                <button @click.stop="moveFolder(fIndex, 1)" class="hover:text-pink-600 px-0.5" title="文件夹下移">▼</button>
+                                <button @click="editListOrFolder(folder)" class="hover:text-pink-600 ml-1" title="编辑文件夹">✏️</button>
+                                <button @click="confirmDeleteFolder(folder)" class="hover:text-red-500 ml-0.5" title="删除文件夹">×</button>
                             </div>
                         </div>
                         <!-- 文件夹内清单 -->
@@ -145,9 +149,10 @@
                                         <span class="truncate" x-text="list.name"></span>
                                     </div>
                                     <div class="hidden group-hover:flex items-center space-x-1 text-xs text-gray-400">
-                                        <button @click.stop="moveFolderList(folder.id, list.id, -1)" class="hover:text-pink-600" title="上移">▲</button>
-                                        <button @click.stop="moveFolderList(folder.id, list.id, 1)" class="hover:text-pink-600" title="下移">▼</button>
-                                        <button @click.stop="editListOrFolder(list)" class="hover:text-pink-600 ml-1">✏️</button>
+                                        <button @click.stop="moveFolderList(folder.id, list.id, -1)" class="hover:text-pink-600 px-0.5" title="上移">▲</button>
+                                        <button @click.stop="moveFolderList(folder.id, list.id, 1)" class="hover:text-pink-600 px-0.5" title="下移">▼</button>
+                                        <button @click.stop="editListOrFolder(list)" class="hover:text-pink-600 ml-1" title="编辑">✏️</button>
+                                        <button @click.stop="confirmDeleteList(list)" class="hover:text-red-500 ml-0.5" title="删除清单">×</button>
                                     </div>
                                 </div>
                             </template>
@@ -204,9 +209,11 @@
                         <span>⚙️ 每日小部件</span>
                     </button>
                 </template>
-                <button @click="openTaskModalForCreate()" class="bg-gradient-to-r from-pink-400 to-pink-500 hover:from-pink-500 hover:to-pink-600 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-pink-200 transition-all transform active:scale-95 flex items-center space-x-1">
-                    <span>+ 新建任务</span>
-                </button>
+                <template x-if="currentView !== 'trash'">
+                    <button @click="openTaskModalForCreate()" class="bg-gradient-to-r from-pink-400 to-pink-500 hover:from-pink-500 hover:to-pink-600 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-pink-200 transition-all transform active:scale-95 flex items-center space-x-1">
+                        <span>+ 新建任务</span>
+                    </button>
+                </template>
             </div>
         </header>
 
@@ -294,10 +301,10 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- 编辑与删除按钮 -->
+                                <!-- 编辑与删除按钮 (移入垃圾桶) -->
                                 <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button @click="openTaskModalForEdit(task)" class="p-1.5 text-gray-400 hover:text-pink-600 rounded-lg hover:bg-white transition-colors" title="编辑任务">✏️</button>
-                                    <button @click="deleteTask(task.id)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-white transition-colors" title="删除任务">🗑️</button>
+                                    <button @click="moveToTrash(task.id)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-white transition-colors" title="移入垃圾桶">🗑️</button>
                                 </div>
                             </div>
                         </template>
@@ -308,7 +315,7 @@
                 </div>
             </div>
 
-            <!-- 📅 滴答清单风格日历视图 (Calendar View) -->
+            <!-- 📅 滴答清单风格日历视图 (过去日期彻底解锁编辑) -->
             <div x-show="currentView === 'calendar'" class="max-w-5xl mx-auto space-y-6">
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-6">
                     <div class="flex items-center justify-between">
@@ -329,8 +336,8 @@
                             <div @click="selectCalendarDate(day.dateStr)"
                                  class="min-h-[100px] p-2 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between"
                                  :class="{
-                                     'bg-pink-50/40 border-pink-200 font-bold': day.isToday,
-                                     'bg-gray-50/50 border-gray-100 text-gray-400': !day.isCurrentMonth,
+                                     'bg-pink-50/50 border-pink-300 font-bold ring-1 ring-pink-300': day.isToday,
+                                     'bg-gray-50/40 border-gray-100 text-gray-400': !day.isCurrentMonth,
                                      'bg-white border-gray-100 hover:border-pink-300 shadow-2xs': day.isCurrentMonth && !day.isToday,
                                      'ring-2 ring-pink-400': selectedCalendarDate === day.dateStr
                                  }">
@@ -340,6 +347,7 @@
                                 <div class="space-y-1 mt-1 overflow-hidden">
                                     <template x-for="task in getTasksForDate(day.dateStr).slice(0, 3)" :key="task.id">
                                         <div class="text-[10px] px-1.5 py-0.5 rounded text-white truncate shadow-2xs flex items-center space-x-1"
+                                             :class="task.completed ? 'opacity-50 line-through' : ''"
                                              :style="'background-color: ' + getListColor(task.listId)">
                                             <span class="truncate" x-text="task.title"></span>
                                         </div>
@@ -353,7 +361,7 @@
                     </div>
                 </div>
 
-                <!-- 选中日期的任务清单 -->
+                <!-- 选中日期的任务清单 (过去日期均可完美编辑/新增) -->
                 <div x-show="selectedCalendarDate" class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
                     <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                         <h3 class="font-bold text-gray-800" x-text="selectedCalendarDate + ' 的日程安排'"></h3>
@@ -371,7 +379,7 @@
                                 <div class="flex items-center space-x-2">
                                     <span class="text-xs px-2 py-0.5 rounded font-medium text-white" :style="'background-color: ' + getListColor(task.listId)" x-text="getListName(task.listId)"></span>
                                     <button @click="openTaskModalForEdit(task)" class="text-gray-400 hover:text-pink-600 p-1 opacity-0 group-hover:opacity-100 transition-opacity">✏️</button>
-                                    <button @click="deleteTask(task.id)" class="text-gray-400 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity">🗑️</button>
+                                    <button @click="moveToTrash(task.id)" class="text-gray-400 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity">🗑️</button>
                                 </div>
                             </div>
                         </template>
@@ -420,92 +428,164 @@
                 </div>
             </div>
 
-            <!-- 📊 四维数据复盘视图 (Data Review View) -->
+            <!-- 📊 全新架构：四维深度数据复盘视图 (Data Review View) -->
             <div x-show="currentView === 'review'" class="max-w-5xl mx-auto space-y-6">
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-                    <h2 class="text-lg font-bold text-gray-800 mb-1">📊 四维生产力复盘</h2>
-                    <p class="text-xs text-gray-400">多维度深度剖析您的时间精力资产分配与执行效率</p>
+                    <h2 class="text-lg font-bold text-gray-800 mb-1">📊 四维生产力深度复盘</h2>
+                    <p class="text-xs text-gray-400">多维度精准统计您的时间资产、习惯坚持与执行效率</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- 1. 打卡维度 -->
+                    
+                    <!-- 维度一：习惯打卡按月统计 -->
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
                         <h3 class="font-bold text-gray-800 text-base flex items-center space-x-2">
-                            <span>⚡ 维度一：习惯打卡统计</span>
+                            <span>⚡ 维度一：习惯打卡按月完成数</span>
                         </h3>
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between p-3 rounded-2xl bg-pink-50/50">
-                                <span class="text-sm text-gray-600">总习惯数量</span>
-                                <span class="font-bold text-pink-600" x-text="habits.length"></span>
+                        <p class="text-xs text-gray-400" x-text="getCurrentYearMonthStr() + ' 月度统计'"></p>
+                        <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
+                            <template x-for="habit in habits" :key="habit.id">
+                                <div class="p-3.5 rounded-2xl bg-pink-50/40 border border-pink-100 flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="text-2xl" x-text="habit.emoji"></span>
+                                        <div>
+                                            <p class="text-sm font-bold text-gray-800" x-text="habit.name"></p>
+                                            <p class="text-xs text-gray-400" x-text="'每日目标: ' + habit.target + ' 次'"></p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-sm font-bold text-pink-600" x-text="getHabitMonthlyDoneDays(habit.id) + ' 天'"></span>
+                                        <p class="text-[10px] text-gray-400" x-text="'本月打卡率 ' + getHabitMonthlyPercent(habit.id) + '%'"></p>
+                                    </div>
+                                </div>
+                            </template>
+                            <div x-show="habits.length === 0" class="text-center py-6 text-gray-400 text-xs">暂无习惯打卡数据</div>
+                        </div>
+                    </div>
+
+                    <!-- 维度二：本日、本周、本月待办完成率 -->
+                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
+                        <h3 class="font-bold text-gray-800 text-base flex items-center space-x-2">
+                            <span>📅 维度二：时间效率待办完成率</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <!-- 本日 -->
+                            <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600 font-medium">☀️ 本日待办完成率</span>
+                                    <span class="font-bold text-pink-600" x-text="getTodayCompletionRate() + '%'"></span>
+                                </div>
+                                <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-pink-400 h-full rounded-full transition-all duration-500" :style="'width: ' + getTodayCompletionRate() + '%'"></div>
+                                </div>
                             </div>
-                            <div class="flex items-center justify-between p-3 rounded-2xl bg-yellow-50/50">
-                                <span class="text-sm text-gray-600">今日已打卡</span>
-                                <span class="font-bold text-yellow-600" x-text="getTodayCompletedHabitsCount()"></span>
+                            <!-- 本周 -->
+                            <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600 font-medium">📆 本周待办完成率</span>
+                                    <span class="font-bold text-purple-600" x-text="getWeeklyCompletionRate() + '%'"></span>
+                                </div>
+                                <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-purple-400 h-full rounded-full transition-all duration-500" :style="'width: ' + getWeeklyCompletionRate() + '%'"></div>
+                                </div>
+                            </div>
+                            <!-- 本月 -->
+                            <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600 font-medium">📅 本月待办完成率</span>
+                                    <span class="font-bold text-yellow-600" x-text="getMonthlyCompletionRate() + '%'"></span>
+                                </div>
+                                <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-yellow-400 h-full rounded-full transition-all duration-500" :style="'width: ' + getMonthlyCompletionRate() + '%'"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 2. 日期维度 -->
+                    <!-- 维度三：按清单统计完成率（本周 / 本月 / 总完成率） -->
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
                         <h3 class="font-bold text-gray-800 text-base flex items-center space-x-2">
-                            <span>📅 维度二：本周 vs 本月效率对比</span>
+                            <span>📁 维度三：清单项目进度对比</span>
                         </h3>
-                        <div class="space-y-3">
-                            <div class="p-4 rounded-2xl bg-gray-50 border border-gray-100 space-y-2">
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600 font-medium">本周完成待办</span>
-                                    <span class="font-bold text-gray-800" x-text="getCompletedCountThisWeek() + ' 项'"></span>
+                        <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
+                            <template x-for="list in lists" :key="list.id">
+                                <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 space-y-1.5">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-2 truncate">
+                                            <span class="w-3 h-3 rounded-full flex-shrink-0" :style="'background-color: ' + (list.color || '#FF8FAB')"></span>
+                                            <span class="text-sm font-bold text-gray-800 truncate" x-text="list.name"></span>
+                                        </div>
+                                        <span class="text-xs px-2 py-0.5 rounded-md bg-white font-bold text-gray-700 shadow-2xs" x-text="'总完成率 ' + getListRates(list.id).total + '%'"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs text-gray-500 pt-1">
+                                        <span x-text="'本周: ' + getListRates(list.id).week + '%'"></span>
+                                        <span x-text="'本月: ' + getListRates(list.id).month + '%'"></span>
+                                    </div>
                                 </div>
-                                <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                                    <div class="bg-pink-400 h-full rounded-full" :style="'width: ' + getWeeklyProgressPercent() + '%'"></div>
-                                </div>
-                            </div>
-                            <div class="p-4 rounded-2xl bg-gray-50 border border-gray-100 space-y-2">
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600 font-medium">本月完成待办</span>
-                                    <span class="font-bold text-gray-800" x-text="getCompletedCountThisMonth() + ' 项'"></span>
-                                </div>
-                                <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                                    <div class="bg-yellow-400 h-full rounded-full" :style="'width: ' + getMonthlyProgressPercent() + '%'"></div>
-                                </div>
-                            </div>
+                            </template>
+                            <div x-show="lists.length === 0" class="text-center py-6 text-gray-400 text-xs">暂无清单数据</div>
                         </div>
                     </div>
 
-                    <!-- 3. 标签维度 -->
+                    <!-- 维度四：按标签统计完成率（本周 / 本月 / 总完成率） -->
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
                         <h3 class="font-bold text-gray-800 text-base flex items-center space-x-2">
-                            <span>🏷️ 维度三：标签资产分布</span>
+                            <span>🏷️ 维度四：标签资产完成率</span>
                         </h3>
-                        <div class="space-y-2">
+                        <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
                             <template x-for="tag in allTags" :key="tag">
-                                <div class="flex items-center justify-between p-3 rounded-2xl bg-gray-50">
-                                    <span class="text-sm font-medium text-pink-600" x-text="'#' + tag"></span>
-                                    <span class="text-xs px-2 py-0.5 rounded-full bg-white text-gray-600 font-semibold shadow-2xs" x-text="getTaskCountByTag(tag) + ' 项任务'"></span>
+                                <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 space-y-1.5">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-bold text-pink-600" x-text="'#' + tag"></span>
+                                        <span class="text-xs px-2 py-0.5 rounded-md bg-white font-bold text-gray-700 shadow-2xs" x-text="'总完成率 ' + getTagRates(tag).total + '%'"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs text-gray-500 pt-1">
+                                        <span x-text="'本周: ' + getTagRates(tag).week + '%'"></span>
+                                        <span x-text="'本月: ' + getTagRates(tag).month + '%'"></span>
+                                    </div>
                                 </div>
                             </template>
                             <div x-show="allTags.length === 0" class="text-center py-6 text-gray-400 text-xs">暂无标签数据</div>
                         </div>
                     </div>
 
-                    <!-- 4. 清单维度 -->
-                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
-                        <h3 class="font-bold text-gray-800 text-base flex items-center space-x-2">
-                            <span>📁 维度四：清单项目推进进度</span>
-                        </h3>
-                        <div class="space-y-2">
-                            <template x-for="list in lists" :key="list.id">
-                                <div class="p-3 rounded-2xl bg-gray-50 flex items-center justify-between">
-                                    <div class="flex items-center space-x-2 truncate">
-                                        <span class="w-3 h-3 rounded-full flex-shrink-0" :style="'background-color: ' + (list.color || '#FF8FAB')"></span>
-                                        <span class="text-sm font-medium text-gray-700 truncate" x-text="list.name"></span>
-                                    </div>
-                                    <span class="text-xs px-2 py-0.5 rounded-full bg-white text-gray-600 font-semibold shadow-2xs" x-text="getListProgressText(list.id)"></span>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
+                </div>
+            </div>
 
+            <!-- 🗑️ 待办垃圾桶专属视图 (30天自动清理) -->
+            <div x-show="currentView === 'trash'" class="max-w-4xl mx-auto space-y-6">
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800 flex items-center space-x-2">
+                            <span>🗑️ 待办垃圾桶</span>
+                        </h2>
+                        <p class="text-xs text-gray-400 mt-1">已被删除的待办事项存放在这里，超 30 天后将自动彻底清空。</p>
+                    </div>
+                    <button x-show="trashTasks.length > 0" @click="clearAllTrash()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-4 py-2 rounded-xl text-xs font-semibold transition-colors">
+                        彻底清空垃圾桶
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-3">
+                    <template x-for="task in trashTasks" :key="task.id">
+                        <div class="flex items-center justify-between p-3.5 rounded-2xl border border-gray-100 bg-gray-50/50">
+                            <div class="flex-1 min-w-0 mr-3">
+                                <p class="text-sm font-medium text-gray-600 line-through truncate" x-text="task.title"></p>
+                                <p class="text-[10px] text-gray-400 mt-0.5" x-text="'删除时间: ' + (task.deletedAt || '最近')"></p>
+                            </div>
+                            <div class="flex items-center space-x-2 flex-shrink-0">
+                                <button @click="restoreFromTrash(task.id)" class="px-3 py-1.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-600 text-xs font-semibold transition-colors">
+                                    恢复
+                                </button>
+                                <button @click="deleteTrashPermanently(task.id)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg transition-colors" title="彻底删除">
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="trashTasks.length === 0" class="text-center py-12 text-gray-400 text-sm">
+                        垃圾桶空空如也，太干净啦 🌸
+                    </div>
                 </div>
             </div>
 
@@ -540,7 +620,7 @@
                                 </div>
                                 <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button @click="openTaskModalForEdit(task)" class="p-1.5 text-gray-400 hover:text-pink-600 rounded-lg">✏️</button>
-                                    <button @click="deleteTask(task.id)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg">🗑️</button>
+                                    <button @click="moveToTrash(task.id)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg">🗑️</button>
                                 </div>
                             </div>
                         </template>
@@ -570,7 +650,7 @@
                                 </div>
                                 <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button @click="openTaskModalForEdit(task)" class="p-1.5 text-gray-400 hover:text-pink-600 rounded-lg">✏️</button>
-                                    <button @click="deleteTask(task.id)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg">🗑️</button>
+                                    <button @click="moveToTrash(task.id)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg">🗑️</button>
                                 </div>
                             </div>
                         </template>
@@ -583,7 +663,7 @@
 
     <!-- ======================= 弹窗组件群 (Modals) ======================= -->
 
-    <!-- 1. 新建/编辑任务弹窗 (可编辑、可设置无日期) -->
+    <!-- 1. 新建/编辑任务弹窗 (支持无日期) -->
     <div x-show="openTaskModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
         <div @click.away="openTaskModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 border border-pink-100">
             <h3 class="font-bold text-gray-800 text-lg" x-text="editingTask.id ? '编辑待办任务' : '新建待办任务'"></h3>
@@ -672,7 +752,19 @@
         </div>
     </div>
 
-    <!-- 3. 新建/编辑习惯弹窗 -->
+    <!-- 3. 安全防误删确认弹窗 (用于删除文件夹和清单) -->
+    <div x-show="openDeleteConfirmModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+        <div @click.away="openDeleteConfirmModal = false" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 border border-pink-100">
+            <h3 class="font-bold text-gray-800 text-lg" x-text="deleteConfirmTitle"></h3>
+            <p class="text-xs text-gray-500 leading-relaxed" x-text="deleteConfirmMessage"></p>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button @click="openDeleteConfirmModal = false" class="px-4 py-2 rounded-xl text-gray-500 hover:bg-gray-100 text-sm font-medium">取消</button>
+                <button @click="executeConfirmedDelete()" class="px-5 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold shadow-md">确认删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 新建/编辑习惯弹窗 -->
     <div x-show="openHabitModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
         <div @click.away="openHabitModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 border border-pink-100">
             <h3 class="font-bold text-gray-800 text-lg" x-text="editingHabit.id ? '编辑习惯' : '新建习惯'"></h3>
@@ -699,7 +791,7 @@
         </div>
     </div>
 
-    <!-- 4. 编辑个人卡片弹窗 -->
+    <!-- 5. 编辑个人卡片弹窗 -->
     <div x-show="openProfileModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
         <div @click.away="openProfileModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 border border-pink-100">
             <h3 class="font-bold text-gray-800 text-lg">编辑个人名片</h3>
@@ -724,7 +816,7 @@
         </div>
     </div>
 
-    <!-- 5. 每日小部件显隐配置弹窗 -->
+    <!-- 6. 每日小部件显隐配置弹窗 -->
     <div x-show="openWidgetConfig" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
         <div @click.away="openWidgetConfig = false" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 border border-pink-100">
             <h3 class="font-bold text-gray-800 text-lg">每日小部件显隐设置</h3>
@@ -744,7 +836,7 @@
         </div>
     </div>
 
-    <!-- 6. 侧边栏标签统一管理弹窗 -->
+    <!-- 7. 侧边栏标签统一管理弹窗 -->
     <div x-show="openTagManagerModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
         <div @click.away="openTagManagerModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 border border-pink-100">
             <h3 class="font-bold text-gray-800 text-lg">标签资产管理</h3>
@@ -791,10 +883,18 @@
                 folderListModalType: '',
                 editingFolderList: { id: '', folderId: '', name: '', color: '#FF8FAB' },
 
+                // 删除确认弹窗状态
+                openDeleteConfirmModal: false,
+                deleteConfirmTitle: '',
+                deleteConfirmMessage: '',
+                deleteTargetType: '', // 'folder' or 'list'
+                deleteTargetId: '',
+
                 tasks: [
                     { id: 't1', title: '完成宇宙中心 PWA 原型架构', listId: 'l1', dueDate: new Date().toISOString().split('T')[0], tags: ['工作', '架构'], completed: false },
                     { id: 't2', title: '买一杯热拿铁咖啡', listId: 'l2', dueDate: new Date().toISOString().split('T')[0], tags: ['生活'], completed: true }
                 ],
+                trashTasks: [], // 待办垃圾桶存储 [{'...task', deletedAt: 'YYYY-MM-DD HH:mm', deleteTimestamp: 12345678}]
                 openTaskModal: false,
                 editingTask: { id: '', title: '', listId: '', dueDate: '', tagsInput: '' },
                 filterHideCompleted: false,
@@ -818,6 +918,7 @@
 
                 initApp() {
                     this.loadFromLocalStorage();
+                    this.autoCleanTrash(); // 自动打扫垃圾桶（清理超过 30 天的任务）
                     this.generateCalendarDays();
                     if (!this.editingTask.listId && this.lists.length > 0) {
                         this.editingTask.listId = this.lists[0].id;
@@ -839,6 +940,7 @@
                     if (this.currentView === 'calendar') return '📅 滴答清单风格日历';
                     if (this.currentView === 'habits') return '⚡ 习惯打卡专属空间';
                     if (this.currentView === 'review') return '📊 四维生产力数据复盘';
+                    if (this.currentView === 'trash') return '🗑️ 待办垃圾桶';
                     if (this.currentView.startsWith('list_')) {
                         let id = this.currentView.replace('list_', '');
                         return this.getListName(id);
@@ -849,7 +951,7 @@
                     return '宇宙中心';
                 },
 
-                // 任务过滤（精准匹配无日期）
+                // 任务过滤（精准支持无日期）
                 getFilteredTasks() {
                     return this.tasks.filter(t => {
                         if (this.filterHideCompleted && t.completed) return false;
@@ -889,7 +991,7 @@
                     return this.currentView.startsWith('tag_') ? this.currentView.replace('tag_', '') : '';
                 },
 
-                // 任务操作 (新建、编辑、保存、删除)
+                // 任务操作 (新建、编辑、保存、移入垃圾桶)
                 openTaskModalForCreate() {
                     this.editingTask = { id: '', title: '', listId: this.lists[0]?.id || '', dueDate: new Date().toISOString().split('T')[0], tagsInput: '' };
                     this.openTaskModal = true;
@@ -947,9 +1049,55 @@
                         this.saveToLocalStorage();
                     }
                 },
-                deleteTask(id) {
-                    this.tasks = this.tasks.filter(x => x.id !== id);
+
+                // 待办垃圾桶管理逻辑
+                moveToTrash(taskId) {
+                    let task = this.tasks.find(t => t.id === taskId);
+                    if (task) {
+                        let now = new Date();
+                        let deletedAtStr = now.toISOString().split('T')[0] + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+                        this.trashTasks.unshift({
+                            ...task,
+                            deletedAt: deletedAtStr,
+                            deleteTimestamp: Date.now()
+                        });
+                        this.tasks = this.tasks.filter(t => t.id !== taskId);
+                        this.saveToLocalStorage();
+                    }
+                },
+                restoreFromTrash(taskId) {
+                    let index = this.trashTasks.findIndex(t => t.id === taskId);
+                    if (index !== -1) {
+                        let task = { ...this.trashTasks[index] };
+                        delete task.deletedAt;
+                        delete task.deleteTimestamp;
+                        this.tasks.push(task);
+                        this.trashTasks.splice(index, 1);
+                        this.saveToLocalStorage();
+                    }
+                },
+                deleteTrashPermanently(taskId) {
+                    this.trashTasks = this.trashTasks.filter(t => t.id !== taskId);
                     this.saveToLocalStorage();
+                },
+                clearAllTrash() {
+                    if (confirm('确定彻底清空垃圾桶吗？其中的所有待办将无法恢复。')) {
+                        this.trashTasks = [];
+                        this.saveToLocalStorage();
+                    }
+                },
+                // 30天自动打扫垃圾桶
+                autoCleanTrash() {
+                    let thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+                    let now = Date.now();
+                    let beforeCount = this.trashTasks.length;
+                    this.trashTasks = this.trashTasks.filter(t => {
+                        let ts = t.deleteTimestamp || now;
+                        return (now - ts) < thirtyDaysMs;
+                    });
+                    if (beforeCount !== this.trashTasks.length) {
+                        this.saveToLocalStorage();
+                    }
                 },
 
                 deleteTag(targetTag) {
@@ -961,6 +1109,36 @@
                     if (this.currentView === 'tag_' + targetTag) {
                         this.currentView = 'daily';
                     }
+                    this.saveToLocalStorage();
+                },
+
+                // 文件夹与清单二次确认删除逻辑
+                confirmDeleteFolder(folder) {
+                    this.deleteTargetType = 'folder';
+                    this.deleteTargetId = folder.id;
+                    this.deleteConfirmTitle = `删除文件夹 "${folder.name}"`;
+                    this.deleteConfirmMessage = '删除此文件夹后，其内部包含的所有清单将自动移回根目录，确定要删除吗？';
+                    this.openDeleteConfirmModal = true;
+                },
+                confirmDeleteList(list) {
+                    this.deleteTargetType = 'list';
+                    this.deleteTargetId = list.id;
+                    this.deleteConfirmTitle = `删除清单 "${list.name}"`;
+                    this.deleteConfirmMessage = '删除该清单后，属于该清单的所有任务将随之删除，确定要继续吗？';
+                    this.openDeleteConfirmModal = true;
+                },
+                executeConfirmedDelete() {
+                    if (this.deleteTargetType === 'folder') {
+                        this.folders = this.folders.filter(f => f.id !== this.deleteTargetId);
+                        this.lists = this.lists.map(l => l.folderId === this.deleteTargetId ? { ...l, folderId: '' } : l);
+                    } else if (this.deleteTargetType === 'list') {
+                        this.lists = this.lists.filter(l => l.id !== this.deleteTargetId);
+                        this.tasks = this.tasks.filter(t => t.listId !== this.deleteTargetId);
+                        if (this.currentView === 'list_' + this.deleteTargetId) {
+                            this.currentView = 'daily';
+                        }
+                    }
+                    this.openDeleteConfirmModal = false;
                     this.saveToLocalStorage();
                 },
 
@@ -1007,13 +1185,7 @@
                     this.openFolderListModal = false;
                     this.saveToLocalStorage();
                 },
-                deleteFolder(id) {
-                    this.folders = this.folders.filter(f => f.id !== id);
-                    this.lists = this.lists.map(l => l.folderId === id ? { ...l, folderId: '' } : l);
-                    this.saveToLocalStorage();
-                },
 
-                // 根目录清单移动
                 moveRootList(listId, direction) {
                     let rootLists = this.lists.filter(l => !l.folderId);
                     let idx = rootLists.findIndex(l => l.id === listId);
@@ -1030,8 +1202,6 @@
                         this.saveToLocalStorage();
                     }
                 },
-
-                // 文件夹内部清单移动
                 moveFolderList(folderId, listId, direction) {
                     let folderLists = this.lists.filter(l => l.folderId === folderId);
                     let idx = folderLists.findIndex(l => l.id === listId);
@@ -1048,8 +1218,6 @@
                         this.saveToLocalStorage();
                     }
                 },
-
-                // 文件夹本身移动
                 moveFolder(fIndex, direction) {
                     let targetIndex = fIndex + direction;
                     if (targetIndex >= 0 && targetIndex < this.folders.length) {
@@ -1112,9 +1280,6 @@
                 getHabitProgressText() {
                     let doneCount = this.habits.filter(h => this.isHabitDoneToday(h.id)).length;
                     return `已打卡 ${doneCount}/${this.habits.length}`;
-                },
-                getTodayCompletedHabitsCount() {
-                    return this.habits.filter(h => this.isHabitDoneToday(h.id)).length;
                 },
 
                 saveProfile() {
@@ -1186,32 +1351,129 @@
                     return this.tasks.filter(t => t.dueDate === dateStr);
                 },
 
-                getCompletedCountThisWeek() {
-                    return this.tasks.filter(t => t.completed).length;
+                // ==================== 四维复盘计算算法 ====================
+                getCurrentYearMonthStr() {
+                    let now = new Date();
+                    return `${now.getFullYear()}年${now.getMonth() + 1}月`;
                 },
-                getCompletedCountThisMonth() {
-                    return this.tasks.filter(t => t.completed).length;
+                getHabitMonthlyDoneDays(habitId) {
+                    let now = new Date();
+                    let prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                    let count = 0;
+                    Object.keys(this.habitLogs).forEach(date => {
+                        if (date.startsWith(prefix) && this.habitLogs[date] && this.habitLogs[date][habitId] > 0) {
+                            count++;
+                        }
+                    });
+                    return count;
                 },
-                getWeeklyProgressPercent() {
-                    let total = this.tasks.length || 1;
-                    let completed = this.tasks.filter(t => t.completed).length;
-                    return Math.min(100, Math.round((completed / total) * 100));
+                getHabitMonthlyPercent(habitId) {
+                    let now = new Date();
+                    let totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                    let doneDays = this.getHabitMonthlyDoneDays(habitId);
+                    return Math.round((doneDays / totalDays) * 100);
                 },
-                getMonthlyProgressPercent() {
-                    return this.getWeeklyProgressPercent();
+
+                getTodayCompletionRate() {
+                    let today = this.getTodayDateStr();
+                    let todayTasks = this.tasks.filter(t => t.dueDate === today);
+                    if (todayTasks.length === 0) return 100;
+                    let completed = todayTasks.filter(t => t.completed).length;
+                    return Math.round((completed / todayTasks.length) * 100);
                 },
+                getWeeklyCompletionRate() {
+                    let now = new Date();
+                    let dayOfWeek = now.getDay() || 7;
+                    let monday = new Date(now);
+                    monday.setDate(now.getDate() - dayOfWeek + 1);
+                    monday.setHours(0, 0, 0, 0);
+
+                    let sunday = new Date(monday);
+                    sunday.setDate(monday.getDate() + 6);
+                    sunday.setHours(23, 59, 59, 999);
+
+                    let weekTasks = this.tasks.filter(t => {
+                        if (!t.dueDate) return false;
+                        let d = new Date(t.dueDate);
+                        return d >= monday && d <= sunday;
+                    });
+                    if (weekTasks.length === 0) return 0;
+                    let completed = weekTasks.filter(t => t.completed).length;
+                    return Math.round((completed / weekTasks.length) * 100);
+                },
+                getMonthlyCompletionRate() {
+                    let now = new Date();
+                    let prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                    let monthTasks = this.tasks.filter(t => t.dueDate && t.dueDate.startsWith(prefix));
+                    if (monthTasks.length === 0) return 0;
+                    let completed = monthTasks.filter(t => t.completed).length;
+                    return Math.round((completed / monthTasks.length) * 100);
+                },
+
+                // 按清单计算本周 / 本月 / 总完成率
+                getListRates(listId) {
+                    let listTasks = this.tasks.filter(t => t.listId === listId);
+                    let total = listTasks.length === 0 ? 0 : Math.round((listTasks.filter(t => t.completed).length / listTasks.length) * 100);
+
+                    let now = new Date();
+                    let prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                    let monthTasks = listTasks.filter(t => t.dueDate && t.dueDate.startsWith(prefix));
+                    let month = monthTasks.length === 0 ? 0 : Math.round((monthTasks.filter(t => t.completed).length / monthTasks.length) * 100);
+
+                    let dayOfWeek = now.getDay() || 7;
+                    let monday = new Date(now);
+                    monday.setDate(now.getDate() - dayOfWeek + 1);
+                    monday.setHours(0, 0, 0, 0);
+                    let sunday = new Date(monday);
+                    sunday.setDate(monday.getDate() + 6);
+                    sunday.setHours(23, 59, 59, 999);
+
+                    let weekTasks = listTasks.filter(t => {
+                        if (!t.dueDate) return false;
+                        let d = new Date(t.dueDate);
+                        return d >= monday && d <= sunday;
+                    });
+                    let week = weekTasks.length === 0 ? 0 : Math.round((weekTasks.filter(t => t.completed).length / weekTasks.length) * 100);
+
+                    return { total, month, week };
+                },
+
+                // 按标签计算本周 / 本月 / 总完成率
+                getTagRates(tag) {
+                    let tagTasks = this.tasks.filter(t => (t.tags || []).includes(tag));
+                    let total = tagTasks.length === 0 ? 0 : Math.round((tagTasks.filter(t => t.completed).length / tagTasks.length) * 100);
+
+                    let now = new Date();
+                    let prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                    let monthTasks = tagTasks.filter(t => t.dueDate && t.dueDate.startsWith(prefix));
+                    let month = monthTasks.length === 0 ? 0 : Math.round((monthTasks.filter(t => t.completed).length / monthTasks.length) * 100);
+
+                    let dayOfWeek = now.getDay() || 7;
+                    let monday = new Date(now);
+                    monday.setDate(now.getDate() - dayOfWeek + 1);
+                    monday.setHours(0, 0, 0, 0);
+                    let sunday = new Date(monday);
+                    sunday.setDate(monday.getDate() + 6);
+                    sunday.setHours(23, 59, 59, 999);
+
+                    let weekTasks = tagTasks.filter(t => {
+                        if (!t.dueDate) return false;
+                        let d = new Date(t.dueDate);
+                        return d >= monday && d <= sunday;
+                    });
+                    let week = weekTasks.length === 0 ? 0 : Math.round((weekTasks.filter(t => t.completed).length / weekTasks.length) * 100);
+
+                    return { total, month, week };
+                },
+
                 getTaskCountByTag(tag) {
                     return this.tasks.filter(t => (t.tags || []).includes(tag)).length;
-                },
-                getListProgressText(listId) {
-                    let listTasks = this.tasks.filter(t => t.listId === listId);
-                    let completed = listTasks.filter(t => t.completed).length;
-                    return `${completed}/${listTasks.length} 完成`;
                 },
                 openTagManager() {
                     this.openTagManagerModal = true;
                 },
 
+                // 存储与备份
                 saveToLocalStorage() {
                     let data = {
                         profile: this.profile,
@@ -1219,6 +1481,7 @@
                         folders: this.folders,
                         lists: this.lists,
                         tasks: this.tasks,
+                        trashTasks: this.trashTasks,
                         habits: this.habits,
                         habitLogs: this.habitLogs
                     };
@@ -1234,6 +1497,7 @@
                             if (data.folders) this.folders = data.folders;
                             if (data.lists) this.lists = data.lists;
                             if (data.tasks) this.tasks = data.tasks;
+                            if (data.trashTasks) this.trashTasks = data.trashTasks;
                             if (data.habits) this.habits = data.habits;
                             if (data.habitLogs) this.habitLogs = data.habitLogs;
                         } catch (e) {
@@ -1248,6 +1512,7 @@
                         folders: this.folders,
                         lists: this.lists,
                         tasks: this.tasks,
+                        trashTasks: this.trashTasks,
                         habits: this.habits,
                         habitLogs: this.habitLogs
                     };
@@ -1271,6 +1536,7 @@
                                 if (data.folders) this.folders = data.folders;
                                 if (data.lists) this.lists = data.lists;
                                 if (data.tasks) this.tasks = data.tasks;
+                                if (data.trashTasks) this.trashTasks = data.trashTasks;
                                 if (data.habits) this.habits = data.habits;
                                 if (data.habitLogs) this.habitLogs = data.habitLogs;
                                 this.saveToLocalStorage();
