@@ -4,1279 +4,1098 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>宇宙中心 - 生产力与灵感系统</title>
-    <!-- PWA Manifest & Meta -->
-    <meta name="theme-color" content="#ec4899">
-    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%E5%AE%87%E5%AE%99%E4%B8%AD%E5%BF%83%22%2C%22short_name%22%3A%22%E5%AE%87%E5%AE%99%E4%B8%AD%E5%BF%83%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23fff1f2%22%2C%22theme_color%22%3A%22%23ec4899%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fapi.iconify.design%2Flucide%3Aheart.svg%3Fcolor%3D%2523ec4899%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Alpine.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- FontAwesome 图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PWA Manifest 动态引入或基础支持 -->
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%E5%AE%87%E5%AE%99%E4%B8%AD%E5%BF%83%22%2C%22short_name%22%3A%22%E5%AE%87%E5%AE%99%E4%B8%AD%E5%BF%83%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%236366f1%22%2C%22icons%22%3A%5B%5D%7D">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
-        body { font-family: 'Noto Sans SC', sans-serif; }
         [x-cloak] { display: none !important; }
-        /* 自定义滚动条优化 */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #fbcfe8; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #f472b6; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-pink-50/30 text-gray-700 h-dvh flex flex-col overflow-hidden" x-data="universeApp()" x-init="init()">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen overflow-hidden flex flex-col" x-data="universeApp()" x-init="init()">
 
-    <!-- 顶部移动端导航栏 -->
-    <header class="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-pink-100 shrink-0">
-        <div class="flex items-center space-x-2">
-            <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="p-1 rounded-lg text-pink-500 hover:bg-pink-50">
-                <i data-lucide="menu" class="w-6 h-6"></i>
+    <!-- 顶部导航栏 -->
+    <header class="bg-white border-b border-slate-200 h-14 px-4 flex items-center justify-between shrink-0 z-20">
+        <div class="flex items-center space-x-3">
+            <button @click="sidebarOpen = !sidebarOpen" class="md:hidden text-slate-600 hover:text-indigo-600 focus:outline-none p-1">
+                <i class="fa-solid fa-bars text-lg"></i>
             </button>
-            <h1 class="font-bold text-pink-600 text-lg flex items-center gap-1">
-                <span>✨</span> 宇宙中心
-            </h1>
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold shadow-sm shadow-indigo-200">
+                    <i class="fa-solid fa-atom text-sm"></i>
+                </div>
+                <h1 class="font-bold text-base tracking-wide bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">宇宙中心</h1>
+            </div>
         </div>
-        <div class="flex items-center space-x-2">
-            <button @click="openTaskModal()" class="bg-pink-500 text-white px-3 py-1.5 rounded-full text-sm font-medium shadow-sm flex items-center gap-1">
-                <i data-lucide="plus" class="w-4 h-4"></i> 新建
+
+        <div class="flex items-center space-x-2 sm:space-x-3">
+            <button @click="openTaskModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition shadow-sm shadow-indigo-200 flex items-center space-x-1.5">
+                <i class="fa-solid fa-plus text-xs"></i>
+                <span class="hidden sm:inline">新待办</span>
             </button>
+            <div class="h-5 w-px bg-slate-200"></div>
+            <button @click="exportData()" title="导出备份" class="text-slate-500 hover:text-indigo-600 p-2 rounded-lg hover:bg-slate-100 transition">
+                <i class="fa-solid fa-cloud-arrow-down"></i>
+            </button>
+            <label title="导入备份" class="text-slate-500 hover:text-indigo-600 p-2 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <input type="file" @change="importData($event)" accept=".json" class="hidden">
+            </label>
         </div>
     </header>
 
+    <!-- 主体布局 -->
     <div class="flex-1 flex overflow-hidden relative">
-        <!-- 左侧边栏 (支持移动端抽屉与平板/电脑固定) -->
-        <aside class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-pink-100 flex flex-col transition-transform duration-300 transform"
-               :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'">
+
+        <div x-show="sidebarOpen" @click="sidebarOpen = false" x-transition.opacity class="fixed inset-0 bg-slate-900/20 z-30 md:hidden" x-cloak></div>
+
+        <!-- 左侧边栏 -->
+        <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed md:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 flex flex-col transition-transform duration-200 ease-in-out z-40 md:translate-x-0 shrink-0">
             
-            <!-- 侧边栏头部 -->
-            <div class="p-4 border-b border-pink-100 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <span class="text-xl">🪐</span>
-                    <span class="font-bold text-gray-800 tracking-wide">宇宙中心系统</span>
-                </div>
-                <button @click="mobileSidebarOpen = false" class="md:hidden text-gray-400 hover:text-gray-600">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+            <div class="p-3 space-y-1 border-b border-slate-100">
+                <button @click="currentView = 'today'; sidebarOpen = false" :class="currentView === 'today' ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition">
+                    <div class="flex items-center space-x-2.5">
+                        <i class="fa-solid fa-sun w-5 text-center text-amber-500"></i>
+                        <span>今日/收集箱</span>
+                    </div>
+                    <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full" x-text="todayTasksCount"></span>
+                </button>
+                <button @click="currentView = 'calendar'; sidebarOpen = false" :class="currentView === 'calendar' ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition">
+                    <div class="flex items-center space-x-2.5">
+                        <i class="fa-solid fa-calendar-days w-5 text-center text-indigo-500"></i>
+                        <span>日历视图</span>
+                    </div>
+                </button>
+                <button @click="currentView = 'review'; sidebarOpen = false" :class="currentView === 'review' ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition">
+                    <div class="flex items-center space-x-2.5">
+                        <i class="fa-solid fa-chart-pie w-5 text-center text-emerald-500"></i>
+                        <span>四维复盘</span>
+                    </div>
+                </button>
+                <button @click="currentView = 'trash'; sidebarOpen = false" :class="currentView === 'trash' ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition">
+                    <div class="flex items-center space-x-2.5">
+                        <i class="fa-solid fa-trash-can w-5 text-center text-rose-500"></i>
+                        <span>废纸篓</span>
+                    </div>
+                    <span class="text-xs bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full" x-text="trashTasks.length" x-show="trashTasks.length > 0"></span>
                 </button>
             </div>
 
-            <!-- 侧边栏导航内容 (可滚动) -->
-            <div class="flex-1 overflow-y-auto p-4 space-y-6">
-                <!-- 核心视图导航 -->
-                <div class="space-y-1">
-                    <button @click="currentView = 'today'; mobileSidebarOpen = false" 
-                            class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-colors"
-                            :class="currentView === 'today' ? 'bg-pink-500 text-white shadow-sm shadow-pink-200' : 'text-gray-600 hover:bg-pink-50'">
-                        <span class="flex items-center gap-2.5"><i data-lucide="sun" class="w-4 h-4"></i> 每日待办</span>
-                        <span class="text-xs px-2 py-0.5 rounded-full" :class="currentView === 'today' ? 'bg-pink-600 text-white' : 'bg-pink-100 text-pink-600'" x-text="todayTasksCount"></span>
+            <!-- 文件夹、清单与标签 -->
+            <div class="flex-1 overflow-y-auto p-3 space-y-4">
+                <div>
+                    <div class="flex items-center justify-between px-3 mb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                        <span>清单</span>
+                        <button @click="openFolderModal()" class="hover:text-indigo-600 transition" title="新建文件夹"><i class="fa-solid fa-folder-plus"></i></button>
+                    </div>
+
+                    <button @click="currentView = 'nodate'; sidebarOpen = false" :class="currentView === 'nodate' ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-sm transition">
+                        <div class="flex items-center space-x-2.5">
+                            <i class="fa-solid fa-inbox w-4 text-center text-slate-400"></i>
+                            <span>无日期待办</span>
+                        </div>
+                        <span class="text-xs text-slate-400" x-text="noDateTasksCount"></span>
                     </button>
-                    <button @click="currentView = 'calendar'; mobileSidebarOpen = false" 
-                            class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-colors"
-                            :class="currentView === 'calendar' ? 'bg-pink-500 text-white shadow-sm shadow-pink-200' : 'text-gray-600 hover:bg-pink-50'">
-                        <span class="flex items-center gap-2.5"><i data-lucide="calendar" class="w-4 h-4"></i> 滴答日历</span>
-                    </button>
-                    <button @click="currentView = 'habits'; mobileSidebarOpen = false" 
-                            class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-colors"
-                            :class="currentView === 'habits' ? 'bg-pink-500 text-white shadow-sm shadow-pink-200' : 'text-gray-600 hover:bg-pink-50'">
-                        <span class="flex items-center gap-2.5"><i data-lucide="zap" class="w-4 h-4"></i> 习惯打卡</span>
-                        <span class="text-xs px-2 py-0.5 rounded-full" :class="currentView === 'habits' ? 'bg-pink-600 text-white' : 'bg-pink-100 text-pink-600'" x-text="habits.length"></span>
-                    </button>
-                    <button @click="currentView = 'review'; mobileSidebarOpen = false" 
-                            class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-colors"
-                            :class="currentView === 'review' ? 'bg-pink-500 text-white shadow-sm shadow-pink-200' : 'text-gray-600 hover:bg-pink-50'">
-                        <span class="flex items-center gap-2.5"><i data-lucide="pie-chart" class="w-4 h-4"></i> 四维复盘</span>
-                    </button>
-                    <button @click="currentView = 'trash'; mobileSidebarOpen = false" 
-                            class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-colors"
-                            :class="currentView === 'trash' ? 'bg-pink-500 text-white shadow-sm shadow-pink-200' : 'text-gray-600 hover:bg-pink-50'">
-                        <span class="flex items-center gap-2.5"><i data-lucide="trash-2" class="w-4 h-4"></i> 待办垃圾桶</span>
-                        <span class="text-xs px-2 py-0.5 rounded-full" :class="currentView === 'trash' ? 'bg-pink-600 text-white' : 'bg-pink-100 text-pink-600'" x-text="trashTasks.length"></span>
-                    </button>
+
+                    <template v-for="(folder, fIndex) in folders" :key="folder.id">
+                        <div class="mt-2">
+                            <div class="flex items-center justify-between px-3 py-1 text-xs font-medium text-slate-500 group">
+                                <div class="flex items-center space-x-2 truncate">
+                                    <i class="fa-solid fa-folder text-amber-400"></i>
+                                    <span class="truncate" x-text="folder.name"></span>
+                                </div>
+                                <div class="hidden group-hover:flex items-center space-x-1">
+                                    <button @click="moveFolder(fIndex, -1)" class="hover:text-indigo-600" title="上移"><i class="fa-solid fa-arrow-up text-[10px]"></i></button>
+                                    <button @click="moveFolder(fIndex, 1)" class="hover:text-indigo-600" title="下移"><i class="fa-solid fa-arrow-down text-[10px]"></i></button>
+                                    <button @click="openSubListModal(folder.id)" class="hover:text-indigo-600" title="添加清单"><i class="fa-solid fa-plus text-[10px]"></i></button>
+                                    <button @click="confirmDeleteFolder(folder.id)" class="hover:text-rose-600" title="删除文件夹"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                                </div>
+                            </div>
+                            <div class="pl-3 space-y-0.5 mt-0.5">
+                                <template v-for="(list, lIndex) in getListsByFolder(folder.id)" :key="list.id">
+                                    <div @click="currentView = 'list'; currentListId = list.id; sidebarOpen = false" 
+                                         :class="(currentView === 'list' && currentListId === list.id) ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50'" 
+                                         class="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-sm transition cursor-pointer group/item">
+                                        <div class="flex items-center space-x-2 truncate">
+                                            <span class="w-2 h-2 rounded-full" :style="'background-color: ' + (list.color || '#6366f1')"></span>
+                                            <span class="truncate" x-text="list.name"></span>
+                                        </div>
+                                        <div class="hidden group-hover/item:flex items-center space-x-1">
+                                            <button @click.stop="moveList(list.id, -1)" class="hover:text-indigo-600" title="上移"><i class="fa-solid fa-arrow-up text-[10px]"></i></button>
+                                            <button @click.stop="moveList(list.id, 1)" class="hover:text-indigo-600" title="下移"><i class="fa-solid fa-arrow-down text-[10px]"></i></button>
+                                            <button @click.stop="confirmDeleteList(list.id)" class="hover:text-rose-600" title="删除清单"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
                 </div>
 
-                <!-- 清单与文件夹分组 -->
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        <span>清单与文件夹</span>
-                        <div class="flex items-center space-x-1">
-                            <button @click="openFolderModal()" title="新建文件夹" class="p-1 hover:text-pink-600 rounded"><i data-lucide="folder-plus" class="w-3.5 h-3.5"></i></button>
-                            <button @click="openCategoryModal()" title="新建清单" class="p-1 hover:text-pink-600 rounded"><i data-lucide="folder-kanban" class="w-3.5 h-3.5"></i></button>
+                <!-- 标签管理区 -->
+                <div class="pt-2 border-t border-slate-100">
+                    <div class="flex items-center justify-between px-3 mb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                        <span>标签</span>
+                        <button @click="openTagModal()" class="hover:text-indigo-600 transition" title="新建标签"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <div class="flex flex-wrap gap-1 px-2 pt-1">
+                        <template v-for="tag in tags" :key="tag.id">
+                            <div @click="currentView = 'tag'; currentTagId = tag.id; sidebarOpen = false" 
+                                 :class="(currentView === 'tag' && currentTagId === tag.id) ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" 
+                                 class="group/tag inline-flex items-center space-x-1 px-2 py-1 rounded-md text-xs transition cursor-pointer">
+                                <span x-text="'#' + tag.name"></span>
+                                <span @click.stop="openEditTagModal(tag)" class="opacity-0 group-hover/tag:opacity-100 hover:text-amber-300 ml-0.5"><i class="fa-solid fa-pen text-[9px]"></i></span>
+                                <span @click.stop="confirmDeleteTag(tag.id)" class="opacity-0 group-hover/tag:opacity-100 hover:text-rose-300 ml-0.5"><i class="fa-solid fa-xmark text-[9px]"></i></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- 右侧主内容区 -->
+        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-6 lg:p-8">
+            <div class="max-w-4xl w-full mx-auto flex-1 flex flex-col">
+
+                <!-- 视图 1：今日 / 收集箱 -->
+                <template v-if="currentView === 'today'">
+                    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">今日待办</h2>
+                            <p class="text-sm text-slate-500 mt-0.5" x-text="formattedTodayDate"></p>
+                        </div>
+                        <div class="flex items-center space-x-2 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-xs self-start sm:self-auto">
+                            <label class="text-xs text-slate-600 cursor-pointer select-none flex items-center space-x-1.5">
+                                <input type="checkbox" x-model="hideCompleted" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+                                <span>隐藏已完成</span>
+                            </label>
                         </div>
                     </div>
 
-                    <!-- 文件夹与清单列表 -->
-                    <div class="space-y-2">
-                        <template x-for="(folder, fIdx) in folders" :key="folder.id">
-                            <div class="bg-pink-50/50 rounded-xl p-2 border border-pink-100/60 space-y-1.5">
-                                <div class="flex items-center justify-between px-1">
-                                    <span class="text-xs font-bold text-pink-700 flex items-center gap-1.5 truncate">
-                                        <i data-lucide="folder" class="w-3.5 h-3.5 text-pink-400"></i> <span x-text="folder.name"></span>
-                                    </span>
-                                    <div class="flex items-center space-x-0.5 text-gray-400">
-                                        <button @click="moveFolder(fIdx, -1)" class="p-0.5 hover:text-pink-600 text-[10px]" title="上移">▲</button>
-                                        <button @click="moveFolder(fIdx, 1)" class="p-0.5 hover:text-pink-600 text-[10px]" title="下移">▼</button>
-                                        <button @click="promptDeleteFolder(folder)" class="p-0.5 hover:text-red-500" title="删除文件夹"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                    <div class="space-y-2 mb-6 flex-1">
+                        <template v-for="task in filteredTodayTasks" :key="task.id">
+                            <div class="bg-white border border-slate-200/80 rounded-xl p-3.5 flex items-start justify-between shadow-xs hover:border-slate-300 transition group">
+                                <div class="flex items-start space-x-3 flex-1 min-w-0 pr-2">
+                                    <input type="checkbox" :checked="task.completed" @change="toggleTaskStatus(task.id)" class="mt-1 rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 shrink-0 cursor-pointer">
+                                    <div class="flex-1 min-w-0">
+                                        <p :class="task.completed ? 'line-through text-slate-400' : 'text-slate-800'" class="text-sm font-medium break-words" x-text="task.title"></p>
+                                        <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                                            <span v-if="task.dueDate" class="text-[11px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded flex items-center space-x-1">
+                                                <i class="fa-regular fa-clock text-[10px]"></i>
+                                                <span x-text="task.dueDate"></span>
+                                            </span>
+                                            <span v-if="task.repeat && task.repeat !== 'none'" class="text-[11px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded flex items-center space-x-1">
+                                                <i class="fa-solid fa-repeat text-[10px]"></i>
+                                                <span x-text="getRepeatLabel(task.repeat)"></span>
+                                            </span>
+                                            <template v-for="tagId in task.tagIds" :key="tagId">
+                                                <span class="text-[11px] text-indigo-600 bg-indigo-50/80 px-1.5 py-0.5 rounded" x-text="'#' + getTagName(tagId)"></span>
+                                            </template>
+                                        </div>
                                     </div>
                                 </div>
-                                <!-- 文件夹内的清单 -->
-                                <div class="space-y-1 pl-2">
-                                    <template x-for="(cat, cIdx) in folder.categories" :key="cat.id">
-                                        <div class="flex items-center justify-between px-2 py-1.5 rounded-lg text-xs transition-colors group"
-                                             :class="currentView === 'category_' + cat.id ? 'bg-pink-500 text-white font-medium shadow-sm' : 'text-gray-600 hover:bg-white'">
-                                            <button @click="currentView = 'category_' + cat.id; mobileSidebarOpen = false" class="flex-1 text-left truncate flex items-center gap-2">
-                                                <span class="w-2 h-2 rounded-full" :style="'background-color: ' + (cat.color || '#ec4899')"></span>
-                                                <span x-text="cat.name"></span>
-                                            </button>
-                                            <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-150 transition-opacity" :class="currentView === 'category_' + cat.id ? 'opacity-100 text-white' : 'text-gray-400'">
-                                                <button @click="moveCategory(fIdx, cIdx, -1)" class="text-[10px] hover:underline" title="上移">▲</button>
-                                                <button @click="moveCategory(fIdx, cIdx, 1)" class="text-[10px] hover:underline" title="下移">▼</button>
-                                                <button @click="promptDeleteCategory(fIdx, cIdx)" title="删除清单"><i data-lucide="x" class="w-3 h-3"></i></button>
+                                <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition shrink-0">
+                                    <button @click="openTaskModal(task)" class="text-slate-400 hover:text-indigo-600 p-1" title="编辑"><i class="fa-solid fa-pen text-xs"></i></button>
+                                    <button @click="deleteTask(task.id)" class="text-slate-400 hover:text-rose-600 p-1" title="删除"><i class="fa-solid fa-trash text-xs"></i></button>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div v-if="filteredTodayTasks.length === 0" class="text-center py-12 text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">
+                            <i class="fa-solid fa-circle-check text-3xl mb-2 text-slate-300"></i>
+                            <p class="text-sm">今日暂无待办，享受美好的一天吧！</p>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- 视图 2：日历视图 -->
+                <template v-if="currentView === 'calendar'">
+                    <div class="mb-6 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">日历视图</h2>
+                            <p class="text-sm text-slate-500 mt-0.5" x-text="calendarHeaderTitle"></p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button @click="changeMonth(-1)" class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-sm hover:bg-slate-50 transition"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button @click="currentMonthYear = new Date()" class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-sm hover:bg-slate-50 transition">今天</button>
+                            <button @click="changeMonth(1)" class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-sm hover:bg-slate-50 transition"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+                        <div class="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-semibold text-slate-400">
+                            <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-2">
+                            <template v-for="day in calendarDays" :key="day.dateString">
+                                <div @click="openTaskModalForDate(day.dateString)" 
+                                     :class="{
+                                         'bg-indigo-50/50 border-indigo-200': day.isCurrentMonth,
+                                         'bg-slate-50/50 text-slate-400 border-slate-100': !day.isCurrentMonth,
+                                         'ring-2 ring-indigo-600': day.isToday
+                                     }"
+                                     class="min-h-[80px] sm:min-h-[100px] border rounded-xl p-1.5 flex flex-col justify-between hover:border-indigo-300 transition cursor-pointer">
+                                    <div class="flex items-center justify-between">
+                                        <span :class="day.isToday ? 'bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold' : 'text-xs font-medium text-slate-700'" x-text="day.dayNumber"></span>
+                                        <span class="text-[10px] text-slate-400" x-text="day.tasks.length > 0 ? day.tasks.length + '项' : ''"></span>
+                                    </div>
+                                    <div class="space-y-1 overflow-y-auto max-h-[60px]">
+                                        <template v-for="task in day.tasks" :key="task.id">
+                                            <div @click.stop="toggleTaskStatus(task.id)" :class="task.completed ? 'bg-slate-100 text-slate-400 line-through' : 'bg-indigo-50 text-indigo-700'" class="text-[10px] px-1.5 py-0.5 rounded truncate flex items-center justify-between">
+                                                <span class="truncate" x-text="task.title"></span>
+                                                <i v-if="task.completed" class="fa-solid fa-check text-[8px] ml-1"></i>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- 视图 3：四维复盘 -->
+                <template v-if="currentView === 'review'">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-slate-900">四维深度复盘</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">多维度解构你的生产力与习惯资产</p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-slate-800 flex items-center space-x-2">
+                                    <i class="fa-solid fa-fire text-amber-500"></i>
+                                    <span>维度一：习惯打卡</span>
+                                </h3>
+                                <button @click="openHabitModal()" class="text-xs bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg font-medium hover:bg-indigo-100 transition"><i class="fa-solid fa-plus mr-1"></i>新习惯</button>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <template v-for="habit in habits" :key="habit.id">
+                                    <div class="border border-slate-100 bg-slate-50/50 rounded-xl p-3 flex items-center justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="text-2xl" x-text="habit.emoji || '⭐'"></span>
+                                            <div>
+                                                <h4 class="text-sm font-semibold text-slate-800" x-text="habit.name"></h4>
+                                                <p class="text-xs text-slate-500 mt-0.5" x-text="'本月累计打卡 ' + getHabitCount(habit.id) + ' 天'"></p>
+                                            </div>
+                                        </div>
+                                        <button @click="toggleHabitToday(habit.id)" :class="isHabitCheckedToday(habit.id) ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-slate-400 hover:border-slate-300'" class="w-9 h-9 rounded-xl flex items-center justify-center transition shadow-xs">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+                            <h3 class="font-bold text-slate-800 flex items-center space-x-2 mb-4">
+                                <i class="fa-solid fa-chart-line text-indigo-500"></i>
+                                <span>维度二：时间效率</span>
+                            </h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                    <p class="text-xs font-medium text-slate-500">本日完成率</p>
+                                    <div class="flex items-baseline justify-between mt-2">
+                                        <span class="text-2xl font-bold text-slate-800" x-text="todayCompletionRate + '%'"></span>
+                                    </div>
+                                    <div class="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                                        <div class="bg-indigo-600 h-full rounded-full transition-all duration-500" :style="'width: ' + todayCompletionRate + '%'"></div>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                    <p class="text-xs font-medium text-slate-500">本周完成率</p>
+                                    <div class="flex items-baseline justify-between mt-2">
+                                        <span class="text-2xl font-bold text-slate-800" x-text="weekCompletionRate + '%'"></span>
+                                    </div>
+                                    <div class="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                                        <div class="bg-indigo-600 h-full rounded-full transition-all duration-500" :style="'width: ' + weekCompletionRate + '%'"></div>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                    <p class="text-xs font-medium text-slate-500">本月完成率</p>
+                                    <div class="flex items-baseline justify-between mt-2">
+                                        <span class="text-2xl font-bold text-slate-800" x-text="monthCompletionRate + '%'"></span>
+                                    </div>
+                                    <div class="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                                        <div class="bg-indigo-600 h-full rounded-full transition-all duration-500" :style="'width: ' + monthCompletionRate + '%'"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+                                <h3 class="font-bold text-slate-800 flex items-center space-x-2 mb-4">
+                                    <i class="fa-solid fa-list-check text-violet-500"></i>
+                                    <span>维度三：清单进度资产</span>
+                                </h3>
+                                <div class="space-y-3">
+                                    <template v-for="list in allLists" :key="list.id">
+                                        <div>
+                                            <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                                                <span x-text="list.name"></span>
+                                                <span x-text="getListCompletionRate(list.id) + '%'"></span>
+                                            </div>
+                                            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                                <div class="bg-violet-500 h-full rounded-full" :style="'width: ' + getListCompletionRate(list.id) + '%'"></div>
                                             </div>
                                         </div>
                                     </template>
                                 </div>
                             </div>
-                        </template>
 
-                        <!-- 独立清单 (无文件夹) -->
-                        <div class="space-y-1 pt-1">
-                            <template x-for="(cat, cIdx) in looseCategories" :key="cat.id">
-                                <div class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors group"
-                                     :class="currentView === 'category_' + cat.id ? 'bg-pink-500 text-white font-medium shadow-sm' : 'text-gray-600 hover:bg-pink-50'">
-                                    <button @click="currentView = 'category_' + cat.id; mobileSidebarOpen = false" class="flex-1 text-left truncate flex items-center gap-2">
-                                        <span class="w-2 h-2 rounded-full" :style="'background-color: ' + (cat.color || '#ec4899')"></span>
-                                        <span x-text="cat.name"></span>
-                                    </button>
-                                    <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity" :class="currentView === 'category_' + cat.id ? 'opacity-100 text-white' : 'text-gray-400'">
-                                        <button @click="moveLooseCategory(cIdx, -1)" class="text-[10px]" title="上移">▲</button>
-                                        <button @click="moveLooseCategory(cIdx, 1)" class="text-[10px]" title="下移">▼</button>
-                                        <button @click="promptDeleteLooseCategory(cIdx)" title="删除清单"><i data-lucide="x" class="w-3 h-3"></i></button>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 标签资产区域 (支持编辑标签) -->
-                <div class="space-y-2 pt-2 border-t border-pink-100">
-                    <div class="flex items-center justify-between px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        <span>标签资产</span>
-                        <button @click="openTagModal()" class="p-1 hover:text-pink-600 rounded" title="新增标签"><i data-lucide="plus" class="w-3.5 h-3.5"></i></button>
-                    </div>
-                    <div class="flex flex-wrap gap-1.5 px-1">
-                        <template x-for="tag in tags" :key="tag">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-pink-100/60 text-pink-600 group">
-                                <span class="cursor-pointer hover:underline" @click="currentView = 'tag_' + tag; mobileSidebarOpen = false" x-text="'#' + tag"></span>
-                                <button @click="editTag(tag)" class="text-pink-400 hover:text-pink-700 ml-0.5" title="编辑标签">
-                                    <i data-lucide="edit-3" class="w-3 h-3"></i>
-                                </button>
-                                <button @click="deleteTag(tag)" class="text-pink-400 hover:text-red-500 ml-0.5" title="删除标签">×</button>
-                            </span>
-                        </template>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 侧边栏底部系统备份操作 -->
-            <div class="p-3 border-t border-pink-100 flex items-center justify-between bg-pink-50/30 text-xs">
-                <button @click="exportData()" class="text-pink-600 hover:underline flex items-center gap-1">
-                    <i data-lucide="download" class="w-3.5 h-3.5"></i> 备份数据
-                </button>
-                <label class="text-pink-600 hover:underline flex items-center gap-1 cursor-pointer">
-                    <i data-lucide="upload" class="w-3.5 h-3.5"></i> 恢复数据
-                    <input type="file" @change="importData($event)" class="hidden" accept=".json">
-                </label>
-            </div>
-        </aside>
-
-        <!-- 遮罩层 (移动端抽屉展开时) -->
-        <div x-show="mobileSidebarOpen" @click="mobileSidebarOpen = false" class="fixed inset-0 bg-black/20 z-40 md:hidden" x-cloak></div>
-
-        <!-- 右侧主内容区域 (彻底修复平板和手机端滚动条，使其完全可下拉查看) -->
-        <main class="flex-1 flex flex-col h-full overflow-y-auto bg-pink-50/20">
-            
-            <!-- 视图 1：每日待办 -->
-            <div x-show="currentView === 'today'" class="p-4 md:p-8 max-w-4xl mx-auto w-full space-y-6">
-                <!-- 顶部欢迎与小组件快捷栏 -->
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-pink-100 shadow-sm">
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                            <span>☀️</span> 每日待办系统
-                        </h2>
-                        <p class="text-xs text-gray-400 mt-1" x-text="todayFormattedDate"></p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button @click="currentView = 'habits'" class="bg-pink-50 text-pink-600 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 hover:bg-pink-100 transition-colors">
-                            <i data-lucide="zap" class="w-4 h-4"></i> 每日小部件
-                        </button>
-                        <button @click="openTaskModal()" class="hidden md:flex bg-pink-500 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm shadow-pink-200 hover:bg-pink-600 transition-colors items-center gap-1.5">
-                            <i data-lucide="plus" class="w-4 h-4"></i> 新建任务
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 今日习惯速打卡小组件 -->
-                <div class="bg-white p-4 rounded-2xl border border-pink-100 shadow-sm flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <span class="text-2xl">⚡️</span>
-                        <div>
-                            <h3 class="text-sm font-bold text-gray-800">今日习惯速打卡</h3>
-                            <p class="text-xs text-gray-400 mt-0.5" x-text="'已打卡 ' + todayCheckedHabitsCount + '/' + habits.length"></p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 overflow-x-auto py-1">
-                        <template x-for="hab in habits" :key="hab.id">
-                            <button @click="toggleHabitToday(hab.id)" 
-                                    class="px-3 py-1.5 rounded-xl text-xs font-medium border transition-all flex items-center gap-1 shrink-0"
-                                    :class="isHabitCheckedToday(hab.id) ? 'bg-pink-500 text-white border-pink-500 shadow-sm' : 'bg-pink-50/60 text-gray-600 border-pink-100 hover:border-pink-300'">
-                                <span x-text="hab.emoji"></span>
-                                <span x-text="hab.name"></span>
-                            </button>
-                        </template>
-                    </div>
-                </div>
-
-                <!-- 待办清单区域 -->
-                <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b border-pink-50">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-lg">☀️</span>
-                            <h3 class="font-bold text-gray-800">每日待办清单</h3>
-                            <span class="text-xs px-2 py-0.5 bg-pink-100 text-pink-600 rounded-full font-medium" x-text="filteredTodayTasks.length"></span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <!-- 已优化手机端“隐藏已完成”按钮大小，精简不占地 -->
-                            <label class="flex items-center space-x-1.5 text-xs text-gray-500 cursor-pointer bg-pink-50/60 px-2.5 py-1 rounded-lg border border-pink-100">
-                                <input type="checkbox" x-model="hideCompleted" class="rounded text-pink-500 focus:ring-pink-400 w-3.5 h-3.5">
-                                <span>隐藏已完成</span>
-                            </label>
-                            <select x-model="todoTimeFilter" class="bg-pink-50/60 border border-pink-100 text-xs rounded-lg px-2.5 py-1 text-gray-600 focus:outline-none focus:ring-1 focus:ring-pink-400">
-                                <option value="all">全部时间</option>
-                                <option value="today">今天到期</option>
-                                <option value="nodate">无日期</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- 任务列表 -->
-                    <div class="space-y-2">
-                        <template x-for="task in filteredTodayTasks" :key="task.id">
-                            <div class="flex items-center justify-between p-3 rounded-xl border transition-all group"
-                                 :class="task.completed ? 'bg-gray-50/80 border-gray-100 text-gray-400' : 'bg-white border-pink-100/80 hover:border-pink-300 shadow-xs'">
-                                <div class="flex items-center space-x-3 flex-1 min-w-0">
-                                    <input type="checkbox" :checked="task.completed" @change="toggleTaskComplete(task.id)" class="w-4 h-4 rounded text-pink-500 focus:ring-pink-400 cursor-pointer shrink-0">
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-medium truncate" :class="task.completed ? 'line-through text-gray-400' : 'text-gray-800'" x-text="task.title"></p>
-                                        <div class="flex items-center gap-2 mt-1 text-[11px] text-gray-400">
-                                            <span x-show="task.date" class="flex items-center gap-0.5"><i data-lucide="calendar" class="w-3 h-3"></i> <span x-text="task.date"></span></span>
-                                            <span x-show="!task.date" class="text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded">无日期</span>
-                                            <span x-show="task.categoryName" class="text-pink-600 bg-pink-50 px-1.5 py-0.2 rounded" x-text="task.categoryName"></span>
-                                            <span x-show="task.tag" class="text-purple-600 bg-purple-50 px-1.5 py-0.2 rounded" x-text="'#' + task.tag"></span>
-                                            <span x-show="task.recurrence && task.recurrence !== 'none'" class="text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded flex items-center gap-0.5"><i data-lucide="repeat" class="w-2.5 h-2.5"></i> <span x-text="getRecurrenceLabel(task.recurrence)"></span></span>
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+                                <h3 class="font-bold text-slate-800 flex items-center space-x-2 mb-4">
+                                    <i class="fa-solid fa-tags text-emerald-500"></i>
+                                    <span>维度四：标签资产统计</span>
+                                </h3>
+                                <div class="space-y-3">
+                                    <template v-for="tag in tags" :key="tag.id">
+                                        <div>
+                                            <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                                                <span x-text="'#' + tag.name"></span>
+                                                <span x-text="getTagCompletionRate(tag.id) + '%'"></span>
+                                            </div>
+                                            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                                <div class="bg-emerald-500 h-full rounded-full" :style="'width: ' + getTagCompletionRate(tag.id) + '%'"></div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button @click="editTask(task)" class="p-1 text-gray-400 hover:text-pink-600 rounded" title="编辑任务"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                                    <button @click="deleteTask(task.id)" class="p-1 text-gray-400 hover:text-red-500 rounded" title="删除任务"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                </div>
-                            </div>
-                        </template>
-                        <div x-show="filteredTodayTasks.length === 0" class="text-center py-10 text-gray-400 text-sm">
-                            ✨ 今日任务已全部清空，太棒啦！
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 视图 2：滴答日历 (过去、今天、未来完全平权，可点击打勾编辑) -->
-            <div x-show="currentView === 'calendar'" class="p-4 md:p-8 max-w-5xl mx-auto w-full space-y-6">
-                <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                            <span>📅</span> 滴答日历
-                        </h2>
-                        <p class="text-xs text-gray-400 mt-1">所有日期的格子完全平权，点击日期即可管理当日日程与待办</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button @click="changeMonth(-1)" class="p-2 border border-pink-200 rounded-xl hover:bg-pink-50 text-pink-600"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-                        <span class="font-bold text-sm text-gray-700 min-w-[90px] text-center" x-text="calendarYearMonth"></span>
-                        <button @click="changeMonth(1)" class="p-2 border border-pink-200 rounded-xl hover:bg-pink-50 text-pink-600"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-                        <button @click="goToTodayCalendar()" class="bg-pink-100 text-pink-600 px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-pink-200">今天</button>
-                    </div>
-                </div>
-
-                <!-- 日历网格 -->
-                <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm space-y-4">
-                    <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-gray-400 pb-2 border-b border-pink-50">
-                        <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
-                    </div>
-                    <div class="grid grid-cols-7 gap-1.5">
-                        <template x-for="day in calendarDays" :key="day.dateStr">
-                            <div @click="selectedCalendarDate = day.dateStr" 
-                                 class="min-h-[85px] p-2 rounded-xl border transition-all cursor-pointer flex flex-col justify-between"
-                                 :class="{
-                                     'bg-pink-500 text-white border-pink-500 shadow-sm': selectedCalendarDate === day.dateStr,
-                                     'bg-white border-pink-100 hover:border-pink-300': selectedCalendarDate !== day.dateStr && !day.isOtherMonth,
-                                     'bg-gray-50/50 border-gray-100 text-gray-300': day.isOtherMonth
-                                 }">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold" :class="selectedCalendarDate === day.dateStr ? 'text-white' : (day.isToday ? 'text-pink-600 font-extrabold' : 'text-gray-700')" x-text="day.dayNum"></span>
-                                    <span x-show="day.isToday" class="w-1.5 h-1.5 rounded-full bg-pink-500" :class="selectedCalendarDate === day.dateStr ? 'bg-white' : ''"></span>
-                                </div>
-                                <div class="space-y-1 mt-1 overflow-hidden">
-                                    <template x-for="t in getTasksForDate(day.dateStr).slice(0, 2)" :key="t.id">
-                                        <div class="text-[10px] truncate px-1 py-0.5 rounded"
-                                             :class="selectedCalendarDate === day.dateStr ? 'bg-pink-600 text-white' : (t.completed ? 'bg-gray-100 line-through text-gray-400' : 'bg-pink-50 text-pink-700')"
-                                             x-text="t.title"></div>
                                     </template>
-                                    <div x-show="getTasksForDate(day.dateStr).length > 2" class="text-[9px] text-center" :class="selectedCalendarDate === day.dateStr ? 'text-pink-100' : 'text-gray-400'" x-text="'+' + (getTasksForDate(day.dateStr).length - 2)"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- 视图 4：废纸篓 -->
+                <template v-if="currentView === 'trash'">
+                    <div class="mb-6 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">待办废纸篓</h2>
+                            <p class="text-sm text-slate-500 mt-0.5">超过 30 天的废弃任务会自动清理</p>
+                        </div>
+                        <button v-if="trashTasks.length > 0" @click="emptyTrash()" class="bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1.5 rounded-lg text-xs font-medium transition">清空废纸篓</button>
+                    </div>
+
+                    <div class="space-y-2">
+                        <template v-for="task in trashTasks" :key="task.id">
+                            <div class="bg-white border border-slate-200 rounded-xl p-3.5 flex items-center justify-between shadow-xs">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-700" x-text="task.title"></p>
+                                    <p class="text-[11px] text-slate-400 mt-1" x-text="'删除于: ' + (task.deletedAt || '未知时间')"></p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button @click="restoreTask(task.id)" class="text-xs bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg font-medium hover:bg-indigo-100 transition">恢复</button>
+                                    <button @click="permanentDeleteTask(task.id)" class="text-xs bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg font-medium hover:bg-rose-100 transition">彻底删除</button>
                                 </div>
                             </div>
                         </template>
+                        <div v-if="trashTasks.length === 0" class="text-center py-12 text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">
+                            <i class="fa-solid fa-trash-can text-3xl mb-2 text-slate-300"></i>
+                            <p class="text-sm">废纸篓空空如也</p>
+                        </div>
                     </div>
-                </div>
+                </template>
 
-                <!-- 选中日期的日程安排详情 -->
-                <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b border-pink-50">
-                        <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
-                            <span>📌</span> <span x-text="selectedCalendarDate + ' 的日程安排'"></span>
-                        </h3>
-                        <button @click="openTaskModalWithDate(selectedCalendarDate)" class="bg-pink-500 text-white px-3 py-1.5 rounded-xl text-xs font-medium shadow-sm hover:bg-pink-600 flex items-center gap-1">
-                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> 添加当日日程
-                        </button>
+                <!-- 视图 5：清单 / 无日期 / 标签 -->
+                <template v-if="currentView === 'list' || currentView === 'nodate' || currentView === 'tag'">
+                    <div class="mb-6 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900" x-text="activeListTitle"></h2>
+                            <p class="text-sm text-slate-500 mt-0.5">专属分类清单视图</p>
+                        </div>
+                        <button @click="openTaskModal()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-indigo-700 transition">添加任务</button>
                     </div>
+
                     <div class="space-y-2">
-                        <template x-for="task in getTasksForDate(selectedCalendarDate)" :key="task.id">
-                            <div class="flex items-center justify-between p-3 rounded-xl border border-pink-100/80 bg-white shadow-xs">
-                                <div class="flex items-center space-x-3 flex-1 min-w-0">
-                                    <input type="checkbox" :checked="task.completed" @change="toggleTaskComplete(task.id)" class="w-4 h-4 rounded text-pink-500 focus:ring-pink-400 cursor-pointer shrink-0">
+                        <template v-for="task in activeFilteredTasks" :key="task.id">
+                            <div class="bg-white border border-slate-200 rounded-xl p-3.5 flex items-start justify-between shadow-xs">
+                                <div class="flex items-start space-x-3 flex-1 min-w-0 pr-2">
+                                    <input type="checkbox" :checked="task.completed" @change="toggleTaskStatus(task.id)" class="mt-1 rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 shrink-0 cursor-pointer">
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-medium truncate" :class="task.completed ? 'line-through text-gray-400' : 'text-gray-800'" x-text="task.title"></p>
-                                        <div class="flex items-center gap-2 mt-0.5 text-[11px] text-gray-400">
-                                            <span x-show="task.categoryName" class="text-pink-600 bg-pink-50 px-1.5 py-0.2 rounded" x-text="task.categoryName"></span>
-                                            <span x-show="task.tag" class="text-purple-600 bg-purple-50 px-1.5 py-0.2 rounded" x-text="'#' + task.tag"></span>
+                                        <p :class="task.completed ? 'line-through text-slate-400' : 'text-slate-800'" class="text-sm font-medium break-words" x-text="task.title"></p>
+                                        <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                                            <span v-if="task.dueDate" class="text-[11px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded" x-text="task.dueDate"></span>
+                                            <span v-if="task.repeat && task.repeat !== 'none'" class="text-[11px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded" x-text="getRepeatLabel(task.repeat)"></span>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex items-center space-x-1">
-                                    <button @click="editTask(task)" class="p-1 text-gray-400 hover:text-pink-600 rounded"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                                    <button @click="deleteTask(task.id)" class="p-1 text-gray-400 hover:text-red-500 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                <div class="flex items-center space-x-1 shrink-0">
+                                    <button @click="openTaskModal(task)" class="text-slate-400 hover:text-indigo-600 p-1"><i class="fa-solid fa-pen text-xs"></i></button>
+                                    <button @click="deleteTask(task.id)" class="text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
                                 </div>
                             </div>
                         </template>
-                        <div x-show="getTasksForDate(selectedCalendarDate).length === 0" class="text-center py-6 text-gray-400 text-xs">
-                            这一天还没有安排待办任务哦~
+                        <div v-if="activeFilteredTasks.length === 0" class="text-center py-12 text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">
+                            <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-300"></i>
+                            <p class="text-sm">该分类下暂无任务</p>
                         </div>
                     </div>
-                </div>
+                </template>
+
             </div>
-
-            <!-- 视图 3：习惯打卡 -->
-            <div x-show="currentView === 'habits'" class="p-4 md:p-8 max-w-4xl mx-auto w-full space-y-6">
-                <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                            <span>⚡️</span> 习惯打卡系统
-                        </h2>
-                        <p class="text-xs text-gray-400 mt-1">养成好习惯，见证每一天的点滴成长</p>
-                    </div>
-                    <button @click="openHabitModal()" class="bg-pink-500 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm hover:bg-pink-600 flex items-center gap-1.5">
-                        <i data-lucide="plus" class="w-4 h-4"></i> 新建习惯
-                    </button>
-                </div>
-
-                <div class="space-y-4">
-                    <template x-for="hab in habits" :key="hab.id">
-                        <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm space-y-3">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <span class="text-2xl p-2 bg-pink-50 rounded-xl" x-text="hab.emoji"></span>
-                                    <div>
-                                        <h3 class="font-bold text-gray-800 text-sm" x-text="hab.name"></h3>
-                                        <p class="text-xs text-gray-400 mt-0.5" x-text="'本月已打卡 ' + getHabitMonthlyCount(hab.id) + ' 天'"></p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-1">
-                                    <button @click="editHabit(hab)" class="p-1 text-gray-400 hover:text-pink-600 rounded"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                                    <button @click="deleteHabit(hab.id)" class="p-1 text-gray-400 hover:text-red-500 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </div>
-
-            <!-- 视图 4：四维复盘 -->
-            <div x-show="currentView === 'review'" class="p-4 md:p-8 max-w-4xl mx-auto w-full space-y-6">
-                <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm">
-                    <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                        <span>📊</span> 四维深度复盘
-                    </h2>
-                    <p class="text-xs text-gray-400 mt-1">全方位多维度解析你的生产力资产与时间价值</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- 维度一：习惯打卡统计 -->
-                    <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm space-y-3">
-                        <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
-                            <span>⚡️</span> 维度一：习惯打卡资产
-                        </h3>
-                        <div class="space-y-2 pt-2">
-                            <template x-for="hab in habits" :key="hab.id">
-                                <div class="flex items-center justify-between text-xs p-2.5 bg-pink-50/50 rounded-xl">
-                                    <span class="font-medium text-gray-700 flex items-center gap-2"><span x-text="hab.emoji"></span> <span x-text="hab.name"></span></span>
-                                    <span class="font-bold text-pink-600" x-text="'本月打卡 ' + getHabitMonthlyCount(hab.id) + ' 天'"></span>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-
-                    <!-- 维度二：时间效率分析 -->
-                    <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm space-y-3">
-                        <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
-                            <span>⏳</span> 维度二：时间效率统计
-                        </h3>
-                        <div class="space-y-3 pt-2 text-xs">
-                            <div class="p-3 bg-pink-50/50 rounded-xl space-y-1">
-                                <div class="flex justify-between font-medium">
-                                    <span>今日待办完成率</span>
-                                    <span x-text="todayCompletionRate + '%'"></span>
-                                </div>
-                                <div class="w-full bg-pink-100 h-2 rounded-full overflow-hidden">
-                                    <div class="bg-pink-500 h-full rounded-full transition-all" :style="'width: ' + todayCompletionRate + '%'"></div>
-                                </div>
-                            </div>
-                            <div class="p-3 bg-pink-50/50 rounded-xl space-y-1">
-                                <div class="flex justify-between font-medium">
-                                    <span>历史总完成率</span>
-                                    <span x-text="totalCompletionRate + '%'"></span>
-                                </div>
-                                <div class="w-full bg-pink-100 h-2 rounded-full overflow-hidden">
-                                    <div class="bg-purple-500 h-full rounded-full transition-all" :style="'width: ' + totalCompletionRate + '%'"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 维度三：清单进度分析 -->
-                    <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm space-y-3">
-                        <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
-                            <span>📁</span> 维度三：清单完成进度
-                        </h3>
-                        <div class="space-y-2 pt-2 text-xs">
-                            <template x-for="cat in allCategoriesFlat" :key="cat.id">
-                                <div class="flex items-center justify-between p-2.5 bg-pink-50/50 rounded-xl">
-                                    <span class="font-medium text-gray-700 flex items-center gap-2">
-                                        <span class="w-2 h-2 rounded-full" :style="'background-color: ' + (cat.color || '#ec4899')"></span>
-                                        <span x-text="cat.name"></span>
-                                    </span>
-                                    <span class="font-bold text-pink-600" x-text="getCategoryCompletionText(cat.id)"></span>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-
-                    <!-- 维度四：标签资产分析 -->
-                    <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm space-y-3">
-                        <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">
-                            <span>🏷️</span> 维度四：标签资产统计
-                        </h3>
-                        <div class="space-y-2 pt-2 text-xs">
-                            <template x-for="tag in tags" :key="tag">
-                                <div class="flex items-center justify-between p-2.5 bg-pink-50/50 rounded-xl">
-                                    <span class="font-medium text-purple-600" x-text="'#' + tag"></span>
-                                    <span class="font-bold text-gray-700" x-text="getTagTaskCount(tag) + ' 个关联任务'"></span>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 视图 5：待办垃圾桶 -->
-            <div x-show="currentView === 'trash'" class="p-4 md:p-8 max-w-4xl mx-auto w-full space-y-6">
-                <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                            <span>🗑️</span> 待办垃圾桶
-                        </h2>
-                        <p class="text-xs text-gray-400 mt-1">误删的任务会暂存在这里，支持随时恢复或彻底清理（超过30天自动清理）</p>
-                    </div>
-                    <button @click="clearTrash()" x-show="trashTasks.length > 0" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-red-100">清空垃圾桶</button>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm space-y-3">
-                    <template x-for="task in trashTasks" :key="task.id">
-                        <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-gray-50/50">
-                            <div>
-                                <p class="text-sm font-medium text-gray-700 line-through" x-text="task.title"></p>
-                                <p class="text-[10px] text-gray-400 mt-0.5" x-text="'删除时间: ' + (task.deletedAt || '未知')"></p>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <button @click="restoreTask(task.id)" class="px-3 py-1 bg-pink-500 text-white rounded-lg text-xs font-medium shadow-xs hover:bg-pink-600">恢复</button>
-                                <button @click="permanentDeleteTask(task.id)" class="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-medium hover:bg-red-200">彻底删除</button>
-                            </div>
-                        </div>
-                    </template>
-                    <div x-show="trashTasks.length === 0" class="text-center py-10 text-gray-400 text-sm">
-                        🗑️ 垃圾桶空空如也
-                    </div>
-                </div>
-            </div>
-
-            <!-- 视图 6：特定独立清单或标签视图 -->
-            <div x-show="currentView.startsWith('category_') || currentView.startsWith('tag_')" class="p-4 md:p-8 max-w-4xl mx-auto w-full space-y-6">
-                <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                            <span>📌</span> <span x-text="currentViewTitle"></span>
-                        </h2>
-                        <p class="text-xs text-gray-400 mt-1">当前分类或标签下的所有待办任务</p>
-                    </div>
-                    <button @click="openTaskModal()" class="bg-pink-500 text-white px-3 py-1.5 rounded-xl text-xs font-medium shadow-sm hover:bg-pink-600 flex items-center gap-1">
-                        <i data-lucide="plus" class="w-3.5 h-3.5"></i> 新建任务
-                    </button>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm space-y-3">
-                    <template x-for="task in filteredSpecificTasks" :key="task.id">
-                        <div class="flex items-center justify-between p-3 rounded-xl border border-pink-100/80 bg-white shadow-xs">
-                            <div class="flex items-center space-x-3 flex-1 min-w-0">
-                                <input type="checkbox" :checked="task.completed" @change="toggleTaskComplete(task.id)" class="w-4 h-4 rounded text-pink-500 focus:ring-pink-400 cursor-pointer shrink-0">
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-medium truncate" :class="task.completed ? 'line-through text-gray-400' : 'text-gray-800'" x-text="task.title"></p>
-                                    <div class="flex items-center gap-2 mt-0.5 text-[11px] text-gray-400">
-                                        <span x-show="task.date" class="flex items-center gap-0.5"><i data-lucide="calendar" class="w-3 h-3"></i> <span x-text="task.date"></span></span>
-                                        <span x-show="task.categoryName" class="text-pink-600 bg-pink-50 px-1.5 py-0.2 rounded" x-text="task.categoryName"></span>
-                                        <span x-show="task.tag" class="text-purple-600 bg-purple-50 px-1.5 py-0.2 rounded" x-text="'#' + task.tag"></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-1">
-                                <button @click="editTask(task)" class="p-1 text-gray-400 hover:text-pink-600 rounded"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                                <button @click="deleteTask(task.id)" class="p-1 text-gray-400 hover:text-red-500 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                            </div>
-                        </div>
-                    </template>
-                    <div x-show="filteredSpecificTasks.length === 0" class="text-center py-10 text-gray-400 text-sm">
-                        这里还没有相关的待办任务哦~
-                    </div>
-                </div>
-            </div>
-
         </main>
     </div>
 
-    <!-- 弹窗：新建/编辑待办任务 (支持循环设置、清单、标签、日期) -->
-    <div x-show="taskModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" x-cloak>
-        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl border border-pink-100 space-y-4">
-            <h3 class="font-bold text-gray-800 text-lg flex items-center gap-2">
-                <span>✨</span> <span x-text="editingTaskId ? '编辑待办任务' : '新建待办任务'"></span>
-            </h3>
-            <div class="space-y-3 text-xs">
+    <!-- 弹窗：新建/编辑待办 -->
+    <div x-show="taskModalOpen" class="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-4" x-cloak>
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100" @click.outside="taskModalOpen = false">
+            <h3 class="text-lg font-bold text-slate-900 mb-4" x-text="editingTask.id ? '编辑待办' : '新建待办'"></h3>
+            <div class="space-y-4">
                 <div>
-                    <label class="block font-medium text-gray-600 mb-1">任务标题</label>
-                    <input type="text" x-model="taskForm.title" placeholder="输入待办任务内容..." class="w-full border border-pink-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm">
+                    <label class="block text-xs font-medium text-slate-500 mb-1">任务内容</label>
+                    <input type="text" x-model="editingTask.title" placeholder="输入待办事项..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-medium text-gray-600 mb-1">到期日期</label>
-                        <input type="date" x-model="taskForm.date" class="w-full border border-pink-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">到期日期</label>
+                        <input type="date" x-model="editingTask.dueDate" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <div>
-                        <label class="block font-medium text-gray-600 mb-1">所属清单</label>
-                        <select x-model="taskForm.categoryId" class="w-full border border-pink-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400">
-                            <option value="">无分类清单</option>
-                            <template x-for="cat in allCategoriesFlat" :key="cat.id">
-                                <option :value="cat.id" x-text="cat.name"></option>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">所属清单</label>
+                        <select x-model="editingTask.listId" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            <option value="">默认/无清单</option>
+                            <template v-for="l in allLists" :key="l.id">
+                                <option :value="l.id" x-text="l.name"></option>
                             </template>
                         </select>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-medium text-gray-600 mb-1">标签资产</label>
-                        <select x-model="taskForm.tag" class="w-full border border-pink-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400">
-                            <option value="">无标签</option>
-                            <template x-for="tag in tags" :key="tag">
-                                <option :value="tag" x-text="'#' + tag"></option>
-                            </template>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-medium text-gray-600 mb-1">循环周期</label>
-                        <select x-model="taskForm.recurrence" class="w-full border border-pink-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400">
-                            <option value="none">不循环</option>
-                            <option value="daily">每天重复</option>
-                            <option value="weekly">每周重复</option>
-                            <option value="monthly">每月重复</option>
-                        </select>
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">循环周期</label>
+                    <select x-model="editingTask.repeat" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                        <option value="none">不循环</option>
+                        <option value="daily">每天循环</option>
+                        <option value="weekly">每周循环</option>
+                        <option value="monthly">每月循环</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">关联标签</label>
+                    <div class="flex flex-wrap gap-1.5 mt-1">
+                        <template v-for="tag in tags" :key="tag.id">
+                            <button @click="toggleTaskTagSelection(tag.id)" type="button" :class="editingTask.tagIds.includes(tag.id) ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" class="px-2.5 py-1 rounded-lg text-xs transition" x-text="'#' + tag.name"></button>
+                        </template>
                     </div>
                 </div>
             </div>
-            <div class="flex justify-end space-x-2 pt-2">
-                <button @click="taskModalOpen = false" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-medium hover:bg-gray-200">取消</button>
-                <button @click="saveTask()" class="px-4 py-2 bg-pink-500 text-white rounded-xl font-medium shadow-sm hover:bg-pink-600">保存任务</button>
+            <div class="flex justify-end space-x-2 mt-6">
+                <button @click="taskModalOpen = false" class="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition">取消</button>
+                <button @click="saveTask()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition shadow-sm shadow-indigo-200">保存</button>
             </div>
         </div>
     </div>
 
     <!-- 弹窗：新建文件夹 -->
-    <div x-show="folderModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" x-cloak>
-        <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl border border-pink-100 space-y-4">
-            <h3 class="font-bold text-gray-800 text-base">📁 新建文件夹</h3>
-            <input type="text" x-model="folderFormName" placeholder="文件夹名称..." class="w-full border border-pink-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-pink-400">
+    <div x-show="folderModalOpen" class="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-4" x-cloak>
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-100" @click.outside="folderModalOpen = false">
+            <h3 class="text-lg font-bold text-slate-900 mb-4">新建文件夹</h3>
+            <input type="text" x-model="newFolderName" placeholder="文件夹名称..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4">
             <div class="flex justify-end space-x-2">
-                <button @click="folderModalOpen = false" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl text-xs">取消</button>
-                <button @click="saveFolder()" class="px-3 py-1.5 bg-pink-500 text-white rounded-xl text-xs">保存</button>
+                <button @click="folderModalOpen = false" class="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition">取消</button>
+                <button @click="saveFolder()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition shadow-sm shadow-indigo-200">创建</button>
             </div>
         </div>
     </div>
 
     <!-- 弹窗：新建清单 -->
-    <div x-show="categoryModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" x-cloak>
-        <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl border border-pink-100 space-y-4">
-            <h3 class="font-bold text-gray-800 text-base">📁 新建清单</h3>
-            <div class="space-y-3 text-xs">
-                <input type="text" x-model="categoryForm.name" placeholder="清单名称..." class="w-full border border-pink-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400">
-                <div>
-                    <label class="block text-gray-500 mb-1">所属文件夹 (可选)</label>
-                    <select x-model="categoryForm.folderId" class="w-full border border-pink-200 rounded-xl px-3 py-2">
-                        <option value="">独立清单 (无文件夹)</option>
-                        <template x-for="f in folders" :key="f.id">
-                            <option :value="f.id" x-text="f.name"></option>
-                        </template>
-                    </select>
+    <div x-show="listModalOpen" class="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-4" x-cloak>
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-100" @click.outside="listModalOpen = false">
+            <h3 class="text-lg font-bold text-slate-900 mb-4">新建子清单</h3>
+            <div class="space-y-3 mb-4">
+                <input type="text" x-model="newList.name" placeholder="清单名称..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs text-slate-500">颜色标识:</span>
+                    <input type="color" x-model="newList.color" class="w-8 h-8 rounded border-0 cursor-pointer">
                 </div>
             </div>
             <div class="flex justify-end space-x-2">
-                <button @click="categoryModalOpen = false" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl text-xs">取消</button>
-                <button @click="saveCategory()" class="px-3 py-1.5 bg-pink-500 text-white rounded-xl text-xs">保存</button>
+                <button @click="listModalOpen = false" class="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition">取消</button>
+                <button @click="saveList()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition shadow-sm shadow-indigo-200">创建</button>
             </div>
         </div>
     </div>
 
     <!-- 弹窗：新建/编辑标签 -->
-    <div x-show="tagModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" x-cloak>
-        <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl border border-pink-100 space-y-4">
-            <h3 class="font-bold text-gray-800 text-base" x-text="editingTagOld ? '编辑标签' : '新建标签'"></h3>
-            <input type="text" x-model="tagFormName" placeholder="输入标签名称..." class="w-full border border-pink-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-pink-400">
+    <div x-show="tagModalOpen" class="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-4" x-cloak>
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-100" @click.outside="tagModalOpen = false">
+            <h3 class="text-lg font-bold text-slate-900 mb-4" x-text="editingTag.id ? '编辑标签' : '新建标签'"></h3>
+            <input type="text" x-model="editingTag.name" placeholder="标签名称（不含#）..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4">
             <div class="flex justify-end space-x-2">
-                <button @click="tagModalOpen = false" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl text-xs">取消</button>
-                <button @click="saveTag()" class="px-3 py-1.5 bg-pink-500 text-white rounded-xl text-xs">保存标签</button>
+                <button @click="tagModalOpen = false" class="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition">取消</button>
+                <button @click="saveTag()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition shadow-sm shadow-indigo-200">保存</button>
             </div>
         </div>
     </div>
 
-    <!-- 弹窗：新建/编辑习惯 -->
-    <div x-show="habitModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" x-cloak>
-        <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl border border-pink-100 space-y-4">
-            <h3 class="font-bold text-gray-800 text-base" x-text="editingHabitId ? '编辑习惯' : '新建习惯'"></h3>
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block text-gray-500 mb-1">Emoji 图标</label>
-                    <input type="text" x-model="habitForm.emoji" placeholder="例如 💧 或 🏃" class="w-full border border-pink-200 rounded-xl px-3 py-2">
-                </div>
-                <div>
-                    <label class="block text-gray-500 mb-1">习惯名称</label>
-                    <input type="text" x-model="habitForm.name" placeholder="例如 喝水 8 杯..." class="w-full border border-pink-200 rounded-xl px-3 py-2">
-                </div>
+    <!-- 弹窗：新建习惯 -->
+    <div x-show="habitModalOpen" class="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-4" x-cloak>
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-100" @click.outside="habitModalOpen = false">
+            <h3 class="text-lg font-bold text-slate-900 mb-4">新建习惯打卡</h3>
+            <div class="space-y-3 mb-4">
+                <input type="text" x-model="newHabit.emoji" placeholder="Emoji图标 (例如 💧)" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="text" x-model="newHabit.name" placeholder="习惯名称 (例如 喝水8杯)..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div class="flex justify-end space-x-2">
-                <button @click="habitModalOpen = false" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl text-xs">取消</button>
-                <button @click="saveHabit()" class="px-3 py-1.5 bg-pink-500 text-white rounded-xl text-xs">保存习惯</button>
+                <button @click="habitModalOpen = false" class="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition">取消</button>
+                <button @click="saveHabit()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition shadow-sm shadow-indigo-200">创建</button>
             </div>
         </div>
     </div>
 
-    <!-- 马卡龙风格防误删确认弹窗 -->
-    <div x-show="confirmModal.open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" x-cloak>
-        <div class="bg-white rounded-2xl p-6 max-w-xs w-full shadow-xl border border-pink-100 text-center space-y-4">
-            <span class="text-3xl">🥺</span>
-            <h4 class="font-bold text-gray-800 text-base" x-text="confirmModal.title"></h4>
-            <p class="text-xs text-gray-500" x-text="confirmModal.message"></p>
-            <div class="flex space-x-2 pt-1">
-                <button @click="confirmModal.open = false" class="flex-1 py-2 bg-gray-100 text-gray-600 rounded-xl text-xs font-medium">取消</button>
-                <button @click="confirmModal.onConfirm(); confirmModal.open = false;" class="flex-1 py-2 bg-pink-500 text-white rounded-xl text-xs font-medium">确认删除</button>
+    <!-- 确认删除弹窗 -->
+    <div x-show="confirmModalOpen" class="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-4" x-cloak>
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-pink-100 text-center">
+            <div class="w-12 h-12 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center mx-auto mb-3 text-xl">
+                <i class="fa-solid fa-heart-crack"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">确定要删除吗？</h3>
+            <p class="text-xs text-slate-500 mb-6" x-text="confirmMessage"></p>
+            <div class="flex space-x-2">
+                <button @click="confirmModalOpen = false" class="flex-1 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition">保留</button>
+                <button @click="executeConfirm()" class="flex-1 py-2 bg-pink-500 text-white rounded-xl text-sm font-medium hover:bg-pink-600 transition shadow-sm shadow-pink-200">确认删除</button>
             </div>
         </div>
     </div>
 
+    <!-- Alpine.js 核心逻辑 -->
     <script>
         function universeApp() {
             return {
+                sidebarOpen: false,
                 currentView: 'today',
-                mobileSidebarOpen: false,
+                currentListId: null,
+                currentTagId: null,
+                currentMonthYear: new Date(),
                 hideCompleted: false,
-                todoTimeFilter: 'all',
-                
-                // 日历状态
-                calendarYear: new Date().getFullYear(),
-                calendarMonth: new Date().getMonth(),
-                selectedCalendarDate: new Date().toISOString().split('T')[0],
 
-                // 数据结构
                 tasks: [],
                 trashTasks: [],
-                habits: [],
-                habitLogs: {}, // { 'habitId_YYYY-MM-DD': true }
                 folders: [],
-                looseCategories: [],
-                tags: ['工作', '生活', '学习', '灵感'],
+                lists: [],
+                tags: [],
+                habits: [],
+                habitLogs: {},
 
-                // 弹窗状态
                 taskModalOpen: false,
-                editingTaskId: null,
-                taskForm: { title: '', date: '', categoryId: '', tag: '', recurrence: 'none' },
-
+                editingTask: { id: null, title: '', dueDate: '', listId: '', repeat: 'none', tagIds: [] },
+                
                 folderModalOpen: false,
-                folderFormName: '',
+                newFolderName: '',
 
-                categoryModalOpen: false,
-                categoryForm: { name: '', folderId: '', color: '#ec4899' },
+                listModalOpen: false,
+                targetFolderIdForSub: null,
+                newList: { name: '', color: '#6366f1' },
 
                 tagModalOpen: false,
-                editingTagOld: null,
-                tagFormName: '',
+                editingTag: { id: null, name: '' },
 
                 habitModalOpen: false,
-                editingHabitId: null,
-                habitForm: { name: '', emoji: '🔥' },
+                newHabit: { emoji: '', name: '' },
 
-                confirmModal: { open: false, title: '', message: '', onConfirm: () => {} },
+                confirmModalOpen: false,
+                confirmMessage: '',
+                confirmCallback: null,
 
                 init() {
-                    this.loadData();
-                    this.cleanOldTrash();
-                },
-
-                loadData() {
                     const saved = localStorage.getItem('universe_center_data');
                     if (saved) {
                         try {
                             const data = JSON.parse(saved);
                             this.tasks = data.tasks || [];
                             this.trashTasks = data.trashTasks || [];
+                            this.folders = data.folders || [];
+                            this.lists = data.lists || [];
+                            this.tags = data.tags || [];
                             this.habits = data.habits || [];
                             this.habitLogs = data.habitLogs || {};
-                            this.folders = data.folders || [];
-                            this.looseCategories = data.looseCategories || [];
-                            this.tags = data.tags || ['工作', '生活', '学习', '灵感'];
-                        } catch (e) { console.error(e); }
+                        } catch(e) { console.error('数据加载失败', e); }
                     } else {
-                        // 初始化演示数据
+                        this.tags = [
+                            { id: 't1', name: '工作' },
+                            { id: 't2', name: '灵感' },
+                            { id: 't3', name: '生活' }
+                        ];
+                        this.folders = [
+                            { id: 'f1', name: '个人成长' }
+                        ];
+                        this.lists = [
+                            { id: 'l1', folderId: 'f1', name: '日常习惯', color: '#6366f1' }
+                        ];
                         this.habits = [
-                            { id: 'h1', name: '喝水8杯', emoji: '💧' },
-                            { id: 'h2', name: '英语单词', emoji: '📖' }
-                        ];
-                        this.looseCategories = [
-                            { id: 'c1', name: '默认清单', color: '#ec4899' }
-                        ];
-                        this.tasks = [
-                            { id: 't1', title: '体验全新升级的宇宙中心系统', date: new Date().toISOString().split('T')[0], categoryId: 'c1', tag: '工作', completed: false, recurrence: 'none' }
+                            { id: 'h1', emoji: '💧', name: '喝水 2000ml' },
+                            { id: 'h2', emoji: '📚', name: '阅读 30 分钟' }
                         ];
                     }
+                    this.cleanOldTrash();
+                    this.saveData();
                 },
 
                 saveData() {
                     const data = {
                         tasks: this.tasks,
                         trashTasks: this.trashTasks,
-                        habits: this.habits,
-                        habitLogs: this.habitLogs,
                         folders: this.folders,
-                        looseCategories: this.looseCategories,
-                        tags: this.tags
+                        lists: this.lists,
+                        tags: this.tags,
+                        habits: this.habits,
+                        habitLogs: this.habitLogs
                     };
                     localStorage.setItem('universe_center_data', JSON.stringify(data));
                 },
 
-                get todayFormattedDate() {
+                cleanOldTrash() {
+                    const now = new Date().getTime();
+                    this.trashTasks = this.trashTasks.filter(t => {
+                        const deletedTime = new Date(t.deletedTimestamp || now).getTime();
+                        return (now - deletedTime) < 30 * 24 * 60 * 60 * 1000;
+                    });
+                },
+
+                get formattedTodayDate() {
+                    const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+                    return new Date().toLocaleDateString('zh-CN', options);
+                },
+
+                get todayString() {
                     const d = new Date();
-                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
                 },
 
                 get todayTasksCount() {
-                    const today = this.todayFormattedDate;
-                    return this.tasks.filter(t => !t.completed && (t.date === today || !t.date)).length;
+                    return this.tasks.filter(t => t.dueDate === this.todayString && !t.completed).length;
                 },
 
-                get allCategoriesFlat() {
-                    let list = [...this.looseCategories];
-                    this.folders.forEach(f => {
-                        if (f.categories) list.push(...f.categories);
-                    });
-                    return list;
+                get noDateTasksCount() {
+                    return this.tasks.filter(t => !t.dueDate).length;
                 },
 
-                getCategoryName(id) {
-                    const cat = this.allCategoriesFlat.find(c => c.id === id);
-                    return cat ? cat.name : '';
+                get allLists() {
+                    return this.lists;
                 },
 
-                // 每日待办筛选
-                get filteredTodayTasks() {
-                    const today = this.todayFormattedDate;
-                    return this.tasks.filter(t => {
-                        if (this.hideCompleted && t.completed) return false;
-                        if (this.todoTimeFilter === 'today' && t.date !== today) return false;
-                        if (this.todoTimeFilter === 'nodate' && t.date) return false;
-                        return true;
-                    });
+                getListsByFolder(folderId) {
+                    return this.lists.filter(l => l.folderId === folderId);
                 },
 
-                // 特定分类或标签过滤
-                get currentViewTitle() {
-                    if (this.currentView.startsWith('category_')) {
-                        const id = this.currentView.replace('category_', '');
-                        return this.getCategoryName(id);
-                    } else if (this.currentView.startsWith('tag_')) {
-                        return '#' + this.currentView.replace('tag_', '');
-                    }
+                getTagName(tagId) {
+                    const tag = this.tags.find(t => t.id === tagId);
+                    return tag ? tag.name : '';
+                },
+
+                getRepeatLabel(repeat) {
+                    if (repeat === 'daily') return '每天循环';
+                    if (repeat === 'weekly') return '每周循环';
+                    if (repeat === 'monthly') return '每月循环';
                     return '';
                 },
 
-                get filteredSpecificTasks() {
-                    if (this.currentView.startsWith('category_')) {
-                        const id = this.currentView.replace('category_', '');
-                        return this.tasks.filter(t => t.categoryId === id);
-                    } else if (this.currentView.startsWith('tag_')) {
-                        const tag = this.currentView.replace('tag_', '');
-                        return this.tasks.filter(t => t.tag === tag);
+                get filteredTodayTasks() {
+                    let list = this.tasks.filter(t => t.dueDate === this.todayString);
+                    if (this.hideCompleted) {
+                        list = list.filter(t => !t.completed);
                     }
-                    return [];
+                    return list;
                 },
 
-                // 日历相关计算
-                get calendarYearMonth() {
-                    return `${this.calendarYear}年 ${this.calendarMonth + 1}月`;
-                },
-
-                get calendarDays() {
-                    const firstDay = new Date(this.calendarYear, this.calendarMonth, 1);
-                    const lastDay = new Date(this.calendarYear, this.calendarMonth + 1, 0);
-                    const prevLastDay = new Date(this.calendarYear, this.calendarMonth, 0);
-                    
-                    let days = [];
-                    const startDayOfWeek = firstDay.getDay();
-                    const totalDays = lastDay.getDate();
-                    const todayStr = this.todayFormattedDate;
-
-                    // 上月补齐
-                    for (let i = startDayOfWeek - 1; i >= 0; i--) {
-                        const dNum = prevLastDay.getDate() - i;
-                        const m = this.calendarMonth === 0 ? 12 : this.calendarMonth;
-                        const y = this.calendarMonth === 0 ? this.calendarYear - 1 : this.calendarYear;
-                        const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(dNum).padStart(2, '0')}`;
-                        days.push({ dayNum: dNum, dateStr, isOtherMonth: true, isToday: dateStr === todayStr });
+                get activeListTitle() {
+                    if (this.currentView === 'nodate') return '无日期待办';
+                    if (this.currentView === 'list') {
+                        const l = this.lists.find(item => item.id === this.currentListId);
+                        return l ? l.name : '清单';
                     }
-
-                    // 当月天数
-                    for (let i = 1; i <= totalDays; i++) {
-                        const dateStr = `${this.calendarYear}-${String(this.calendarMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                        days.push({ dayNum: i, dateStr, isOtherMonth: false, isToday: dateStr === todayStr });
+                    if (this.currentView === 'tag') {
+                        const tag = this.tags.find(t => t.id === this.currentTagId);
+                        return tag ? '#' + tag.name : '标签';
                     }
+                    return '清单';
+                },
 
-                    // 下月补齐至 35 或 42 格
-                    const remaining = 35 - days.length > 0 ? (35 - days.length >= 0 && days.length <= 35 ? 35 - days.length : 42 - days.length) : 42 - days.length;
-                    for (let i = 1; i <= remaining; i++) {
-                        const m = this.calendarMonth === 11 ? 1 : this.calendarMonth + 2;
-                        const y = this.calendarMonth === 11 ? this.calendarYear + 1 : this.calendarYear;
-                        const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                        days.push({ dayNum: i, dateStr, isOtherMonth: true, isToday: dateStr === todayStr });
+                get activeFilteredTasks() {
+                    let list = [];
+                    if (this.currentView === 'nodate') {
+                        list = this.tasks.filter(t => !t.dueDate);
+                    } else if (this.currentView === 'list') {
+                        list = this.tasks.filter(t => t.listId === this.currentListId);
+                    } else if (this.currentView === 'tag') {
+                        list = this.tasks.filter(t => t.tagIds && t.tagIds.includes(this.currentTagId));
                     }
-
-                    return days;
-                },
-
-                changeMonth(step) {
-                    this.calendarMonth += step;
-                    if (this.calendarMonth > 11) {
-                        this.calendarMonth = 0;
-                        this.calendarYear++;
-                    } else if (this.calendarMonth < 0) {
-                        this.calendarMonth = 11;
-                        this.calendarYear--;
+                    if (this.hideCompleted) {
+                        list = list.filter(t => !t.completed);
                     }
+                    return list;
                 },
 
-                goToTodayCalendar() {
-                    const now = new Date();
-                    this.calendarYear = now.getFullYear();
-                    this.calendarMonth = now.getMonth();
-                    this.selectedCalendarDate = this.todayFormattedDate;
-                },
-
-                getTasksForDate(dateStr) {
-                    return this.tasks.filter(t => t.date === dateStr);
-                },
-
-                // 习惯打卡逻辑
-                isHabitCheckedToday(habitId) {
-                    const key = `${habitId}_${this.todayFormattedDate}`;
-                    return !!this.habitLogs[key];
-                },
-
-                toggleHabitToday(habitId) {
-                    const key = `${habitId}_${this.todayFormattedDate}`;
-                    this.habitLogs[key] = !this.habitLogs[key];
-                    this.saveData();
-                },
-
-                getHabitMonthlyCount(habitId) {
-                    let count = 0;
-                    const now = new Date();
-                    const y = now.getFullYear();
-                    const m = String(now.getMonth() + 1).padStart(2, '0');
-                    for (let i = 1; i <= 31; i++) {
-                        const dStr = `${y}-${m}-${String(i).padStart(2, '0')}`;
-                        if (this.habitLogs[`${habitId}_${dStr}`]) count++;
+                openTaskModal(task = null, defaultDate = '') {
+                    if (task) {
+                        this.editingTask = { 
+                            id: task.id, 
+                            title: task.title, 
+                            dueDate: task.dueDate || '', 
+                            listId: task.listId || '', 
+                            repeat: task.repeat || 'none',
+                            tagIds: [...(task.tagIds || [])] 
+                        };
+                    } else {
+                        this.editingTask = { 
+                            id: null, 
+                            title: '', 
+                            dueDate: defaultDate || this.todayString, 
+                            listId: this.currentView === 'list' ? this.currentListId : '', 
+                            repeat: 'none',
+                            tagIds: [] 
+                        };
                     }
-                    return count;
-                },
-
-                get todayCheckedHabitsCount() {
-                    return this.habits.filter(h => this.isHabitCheckedToday(h.id)).length;
-                },
-
-                // 四维复盘统计
-                get todayCompletionRate() {
-                    const today = this.todayFormattedDate;
-                    const todayTasks = this.tasks.filter(t => t.date === today || !t.date);
-                    if (todayTasks.length === 0) return 100;
-                    const completed = todayTasks.filter(t => t.completed).length;
-                    return Math.round((completed / todayTasks.length) * 100);
-                },
-
-                get totalCompletionRate() {
-                    if (this.tasks.length === 0) return 100;
-                    const completed = this.tasks.filter(t => t.completed).length;
-                    return Math.round((completed / this.tasks.length) * 100);
-                },
-
-                getCategoryCompletionText(catId) {
-                    const list = this.tasks.filter(t => t.categoryId === catId);
-                    if (list.length === 0) return '暂无任务';
-                    const comp = list.filter(t => t.completed).length;
-                    return `完成 ${comp}/${list.length}`;
-                },
-
-                getTagTaskCount(tag) {
-                    return this.tasks.filter(t => t.tag === tag).length;
-                },
-
-                // 任务管理与循环待办
-                openTaskModal() {
-                    this.editingTaskId = null;
-                    this.taskForm = { title: '', date: this.todayFormattedDate, categoryId: '', tag: '', recurrence: 'none' };
                     this.taskModalOpen = true;
                 },
 
-                openTaskModalWithDate(dateStr) {
-                    this.editingTaskId = null;
-                    this.taskForm = { title: '', date: dateStr, categoryId: '', tag: '', recurrence: 'none' };
-                    this.taskModalOpen = true;
+                openTaskModalForDate(dateStr) {
+                    this.openTaskModal(null, dateStr);
                 },
 
-                editTask(task) {
-                    this.editingTaskId = task.id;
-                    this.taskForm = { title: task.title, date: task.date || '', categoryId: task.categoryId || '', tag: task.tag || '', recurrence: task.recurrence || 'none' };
-                    this.taskModalOpen = true;
+                toggleTaskTagSelection(tagId) {
+                    const idx = this.editingTask.tagIds.indexOf(tagId);
+                    if (idx > -1) {
+                        this.editingTask.tagIds.splice(idx, 1);
+                    } else {
+                        this.editingTask.tagIds.push(tagId);
+                    }
                 },
 
                 saveTask() {
-                    if (!this.taskForm.title.trim()) return;
-                    const catName = this.getCategoryName(this.taskForm.categoryId);
-                    if (this.editingTaskId) {
-                        const t = this.tasks.find(x => x.id === this.editingTaskId);
+                    if (!this.editingTask.title.trim()) return;
+                    if (this.editingTask.id) {
+                        const t = this.tasks.find(item => item.id === this.editingTask.id);
                         if (t) {
-                            t.title = this.taskForm.title;
-                            t.date = this.taskForm.date;
-                            t.categoryId = this.taskForm.categoryId;
-                            t.categoryName = catName;
-                            t.tag = this.taskForm.tag;
-                            t.recurrence = this.taskForm.recurrence;
+                            t.title = this.editingTask.title;
+                            t.dueDate = this.editingTask.dueDate;
+                            t.listId = this.editingTask.listId;
+                            t.repeat = this.editingTask.repeat;
+                            t.tagIds = [...this.editingTask.tagIds];
                         }
                     } else {
                         const newTask = {
                             id: 't_' + Date.now(),
-                            title: this.taskForm.title,
-                            date: this.taskForm.date,
-                            categoryId: this.taskForm.categoryId,
-                            categoryName: catName,
-                            tag: this.taskForm.tag,
-                            recurrence: this.taskForm.recurrence,
+                            title: this.editingTask.title,
+                            dueDate: this.editingTask.dueDate,
+                            listId: this.editingTask.listId,
+                            repeat: this.editingTask.repeat,
+                            tagIds: [...this.editingTask.tagIds],
                             completed: false
                         };
                         this.tasks.push(newTask);
                     }
-                    this.saveData();
                     this.taskModalOpen = false;
-                },
-
-                toggleTaskComplete(id) {
-                    const t = this.tasks.find(x => x.id === id);
-                    if (!t) return;
-                    t.completed = !t.completed;
-
-                    // 如果开启了循环且任务完成，则自动生成下一个周期的待办任务
-                    if (t.completed && t.recurrence && t.recurrence !== 'none' && t.date) {
-                        let nextDate = new Date(t.date);
-                        if (t.recurrence === 'daily') nextDate.setDate(nextDate.getDate() + 1);
-                        else if (t.recurrence === 'weekly') nextDate.setDate(nextDate.getDate() + 7);
-                        else if (t.recurrence === 'monthly') nextDate.setMonth(nextDate.getMonth() + 1);
-
-                        const nextDateStr = nextDate.toISOString().split('T')[0];
-                        const recurringTask = {
-                            id: 't_' + Date.now(),
-                            title: t.title,
-                            date: nextDateStr,
-                            categoryId: t.categoryId,
-                            categoryName: t.categoryName,
-                            tag: t.tag,
-                            recurrence: t.recurrence,
-                            completed: false
-                        };
-                        this.tasks.push(recurringTask);
-                    }
-
                     this.saveData();
                 },
 
-                deleteTask(id) {
-                    const idx = this.tasks.findIndex(x => x.id === id);
-                    if (idx !== -1) {
-                        let t = this.tasks.splice(idx, 1)[0];
-                        t.deletedAt = new Date().toLocaleString();
-                        this.trashTasks.push(t);
+                toggleTaskStatus(taskId) {
+                    const t = this.tasks.find(item => item.id === taskId);
+                    if (t) {
+                        t.completed = !t.completed;
+                        if (t.completed && t.repeat && t.repeat !== 'none' && t.dueDate) {
+                            let nextDate = new Date(t.dueDate);
+                            if (t.repeat === 'daily') nextDate.setDate(nextDate.getDate() + 1);
+                            else if (t.repeat === 'weekly') nextDate.setDate(nextDate.getDate() + 7);
+                            else if (t.repeat === 'monthly') nextDate.setMonth(nextDate.getMonth() + 1);
+
+                            const year = nextDate.getFullYear();
+                            const month = String(nextDate.getMonth() + 1).padStart(2, '0');
+                            const day = String(nextDate.getDate()).padStart(2, '0');
+                            const nextDateStr = `${year}-${month}-${day}`;
+
+                            this.tasks.push({
+                                id: 't_' + Date.now(),
+                                title: t.title,
+                                dueDate: nextDateStr,
+                                listId: t.listId,
+                                repeat: t.repeat,
+                                tagIds: [...(t.tagIds || [])],
+                                completed: false
+                            });
+                        }
                         this.saveData();
                     }
                 },
 
-                getRecurrenceLabel(rec) {
-                    if (rec === 'daily') return '每天重复';
-                    if (rec === 'weekly') return '每周重复';
-                    if (rec === 'monthly') return '每月重复';
-                    return '';
-                },
-
-                // 垃圾桶操作
-                restoreTask(id) {
-                    const idx = this.trashTasks.findIndex(x => x.id === id);
-                    if (idx !== -1) {
-                        let t = this.trashTasks.splice(idx, 1)[0];
-                        delete t.deletedAt;
-                        this.tasks.push(t);
+                deleteTask(taskId) {
+                    const idx = this.tasks.findIndex(item => item.id === taskId);
+                    if (idx > -1) {
+                        const [removed] = this.tasks.splice(idx, 1);
+                        removed.deletedAt = new Date().toLocaleString();
+                        removed.deletedTimestamp = new Date().getTime();
+                        this.trashTasks.push(removed);
                         this.saveData();
                     }
                 },
 
-                permanentDeleteTask(id) {
-                    this.trashTasks = this.trashTasks.filter(x => x.id !== id);
+                restoreTask(taskId) {
+                    const idx = this.trashTasks.findIndex(item => item.id === taskId);
+                    if (idx > -1) {
+                        const [restored] = this.trashTasks.splice(idx, 1);
+                        delete restored.deletedAt;
+                        delete restored.deletedTimestamp;
+                        this.tasks.push(restored);
+                        this.saveData();
+                    }
+                },
+
+                permanentDeleteTask(taskId) {
+                    this.trashTasks = this.trashTasks.filter(item => item.id !== taskId);
                     this.saveData();
                 },
 
-                clearTrash() {
+                emptyTrash() {
                     this.trashTasks = [];
                     this.saveData();
                 },
 
-                cleanOldTrash() {
-                    // 超过30天自动清理（简化按数量或启动清理）
-                },
-
-                // 文件夹与清单上下排序与删除 (带马卡龙防误删弹窗)
                 openFolderModal() {
-                    this.folderFormName = '';
+                    this.newFolderName = '';
                     this.folderModalOpen = true;
                 },
-
                 saveFolder() {
-                    if (!this.folderFormName.trim()) return;
-                    this.folders.push({ id: 'f_' + Date.now(), name: this.folderFormName, categories: [] });
-                    this.saveData();
+                    if (!this.newFolderName.trim()) return;
+                    this.folders.push({ id: 'f_' + Date.now(), name: this.newFolderName.trim() });
                     this.folderModalOpen = false;
-                },
-
-                moveFolder(idx, direction) {
-                    const newIdx = idx + direction;
-                    if (newIdx >= 0 && newIdx < this.folders.length) {
-                        const temp = this.folders[idx];
-                        this.folders[idx] = this.folders[newIdx];
-                        this.folders[newIdx] = temp;
-                        this.saveData();
-                    }
-                },
-
-                promptDeleteFolder(folder) {
-                    this.confirmModal = {
-                        open: true,
-                        title: '删除文件夹',
-                        message: `确定要删除文件夹 "${folder.name}" 吗？`,
-                        onConfirm: () => {
-                            this.folders = this.folders.filter(f => f.id !== folder.id);
-                            this.saveData();
-                        }
-                    };
-                },
-
-                openCategoryModal() {
-                    this.categoryForm = { name: '', folderId: '', color: '#ec4899' };
-                    this.categoryModalOpen = true;
-                },
-
-                saveCategory() {
-                    if (!this.categoryForm.name.trim()) return;
-                    const newCat = { id: 'c_' + Date.now(), name: this.categoryForm.name, color: '#ec4899' };
-                    if (this.categoryForm.folderId) {
-                        const f = this.folders.find(x => x.id === this.categoryForm.folderId);
-                        if (f) {
-                            if (!f.categories) f.categories = [];
-                            f.categories.push(newCat);
-                        }
-                    } else {
-                        this.looseCategories.push(newCat);
-                    }
                     this.saveData();
-                    this.categoryModalOpen = false;
                 },
-
-                moveLooseCategory(idx, direction) {
-                    const newIdx = idx + direction;
-                    if (newIdx >= 0 && newIdx < this.looseCategories.length) {
-                        const temp = this.looseCategories[idx];
-                        this.looseCategories[idx] = this.looseCategories[newIdx];
-                        this.looseCategories[newIdx] = temp;
+                moveFolder(index, direction) {
+                    const newIndex = index + direction;
+                    if (newIndex >= 0 && newIndex < this.folders.length) {
+                        const item = this.folders.splice(index, 1)[0];
+                        this.folders.splice(newIndex, 0, item);
                         this.saveData();
                     }
                 },
-
-                moveCategory(folderIdx, catIdx, direction) {
-                    const cats = this.folders[folderIdx].categories;
-                    const newIdx = catIdx + direction;
-                    if (newIdx >= 0 && newIdx < cats.length) {
-                        const temp = cats[catIdx];
-                        cats[catIdx] = cats[newIdx];
-                        cats[newIdx] = temp;
+                confirmDeleteFolder(folderId) {
+                    this.confirmMessage = '删除文件夹将同时移除其下的所有子清单，确定吗？';
+                    this.confirmCallback = () => {
+                        this.folders = this.folders.filter(f => f.id !== folderId);
+                        const subLists = this.lists.filter(l => l.folderId === folderId);
+                        const subListIds = subLists.map(l => l.id);
+                        this.lists = this.lists.filter(l => l.folderId !== folderId);
+                        this.tasks = this.tasks.filter(t => !subListIds.includes(t.listId));
                         this.saveData();
-                    }
-                },
-
-                promptDeleteLooseCategory(idx) {
-                    this.confirmModal = {
-                        open: true,
-                        title: '删除清单',
-                        message: '确定要删除这个清单吗？',
-                        onConfirm: () => {
-                            this.looseCategories.splice(idx, 1);
-                            this.saveData();
-                        }
                     };
+                    this.confirmModalOpen = true;
                 },
 
-                promptDeleteCategory(folderIdx, catIdx) {
-                    this.confirmModal = {
-                        open: true,
-                        title: '删除清单',
-                        message: '确定要删除这个清单吗？',
-                        onConfirm: () => {
-                            this.folders[folderIdx].categories.splice(catIdx, 1);
-                            this.saveData();
-                        }
-                    };
+                openSubListModal(folderId) {
+                    this.targetFolderIdForSub = folderId;
+                    this.newList = { name: '', color: '#6366f1' };
+                    this.listModalOpen = true;
                 },
-
-                // 标签编辑功能
-                openTagModal() {
-                    this.editingTagOld = null;
-                    this.tagFormName = '';
-                    this.tagModalOpen = true;
-                },
-
-                editTag(tag) {
-                    this.editingTagOld = tag;
-                    this.tagFormName = tag;
-                    this.tagModalOpen = true;
-                },
-
-                saveTag() {
-                    const name = this.tagFormName.trim();
-                    if (!name) return;
-                    if (this.editingTagOld) {
-                        const idx = this.tags.indexOf(this.editingTagOld);
-                        if (idx !== -1) this.tags[idx] = name;
-                        this.tasks.forEach(t => {
-                            if (t.tag === this.editingTagOld) t.tag = name;
-                        });
-                    } else {
-                        if (!this.tags.includes(name)) this.tags.push(name);
-                    }
-                    this.saveData();
-                    this.tagModalOpen = false;
-                },
-
-                deleteTag(tag) {
-                    this.tags = this.tags.filter(t => t !== tag);
-                    this.tasks.forEach(t => {
-                        if (t.tag === tag) t.tag = '';
+                saveList() {
+                    if (!this.newList.name.trim()) return;
+                    this.lists.push({
+                        id: 'l_' + Date.now(),
+                        folderId: this.targetFolderIdForSub,
+                        name: this.newList.name.trim(),
+                        color: this.newList.color
                     });
+                    this.listModalOpen = false;
                     this.saveData();
                 },
-
-                // 习惯管理
-                openHabitModal() {
-                    this.editingHabitId = null;
-                    this.habitForm = { name: '', emoji: '🔥' };
-                    this.habitModalOpen = true;
+                moveList(listId, direction) {
+                    const l = this.lists.find(item => item.id === listId);
+                    if (!l) return;
+                    const folderLists = this.lists.filter(item => item.folderId === l.folderId);
+                    const idx = folderLists.findIndex(item => item.id === listId);
+                    const newIdx = idx + direction;
+                    if (newIdx >= 0 && newIdx < folderLists.length) {
+                        const otherLists = this.lists.filter(item => item.folderId !== l.folderId);
+                        folderLists.splice(idx, 1);
+                        folderLists.splice(newIdx, 0, l);
+                        this.lists = [...otherLists, ...folderLists];
+                        this.saveData();
+                    }
+                },
+                confirmDeleteList(listId) {
+                    this.confirmMessage = '确定要删除该清单吗？';
+                    this.confirmCallback = () => {
+                        this.lists = this.lists.filter(l => l.id !== listId);
+                        this.tasks.forEach(t => { if (t.listId === listId) t.listId = ''; });
+                        this.saveData();
+                    };
+                    this.confirmModalOpen = true;
                 },
 
-                editHabit(hab) {
-                    this.editingHabitId = hab.id;
-                    this.habitForm = { name: hab.name, emoji: hab.emoji };
-                    this.habitModalOpen = true;
+                openTagModal() {
+                    this.editingTag = { id: null, name: '' };
+                    this.tagModalOpen = true;
                 },
-
-                saveHabit() {
-                    if (!this.habitForm.name.trim()) return;
-                    if (this.editingHabitId) {
-                        const h = this.habits.find(x => x.id === this.editingHabitId);
-                        if (h) {
-                            h.name = this.habitForm.name;
-                            h.emoji = this.habitForm.emoji;
-                        }
+                openEditTagModal(tag) {
+                    this.editingTag = { id: tag.id, name: tag.name };
+                    this.tagModalOpen = true;
+                },
+                saveTag() {
+                    if (!this.editingTag.name.trim()) return;
+                    if (this.editingTag.id) {
+                        const t = this.tags.find(item => item.id === this.editingTag.id);
+                        if (t) t.name = this.editingTag.name.trim();
                     } else {
-                        this.habits.push({ id: 'h_' + Date.now(), name: this.habitForm.name, emoji: this.habitForm.emoji });
+                        this.tags.push({ id: 'tag_' + Date.now(), name: this.editingTag.name.trim() });
+                    }
+                    this.tagModalOpen = false;
+                    this.saveData();
+                },
+                confirmDeleteTag(tagId) {
+                    this.confirmMessage = '确定要删除该标签吗？';
+                    this.confirmCallback = () => {
+                        this.tags = this.tags.filter(t => t.id !== tagId);
+                        this.tasks.forEach(t => {
+                            if (t.tagIds) t.tagIds = t.tagIds.filter(id => id !== tagId);
+                        });
+                        this.saveData();
+                    };
+                    this.confirmModalOpen = true;
+                },
+
+                executeConfirm() {
+                    if (this.confirmCallback) this.confirmCallback();
+                    this.confirmModalOpen = false;
+                },
+
+                get calendarHeaderTitle() {
+                    const y = this.currentMonthYear.getFullYear();
+                    const m = this.currentMonthYear.getMonth() + 1;
+                    return `${y} 年 ${m} 月`;
+                },
+                changeMonth(delta) {
+                    this.currentMonthYear = new Date(this.currentMonthYear.getFullYear(), this.currentMonthYear.getMonth() + delta, 1);
+                },
+                get calendarDays() {
+                    const year = this.currentMonthYear.getFullYear();
+                    const month = this.currentMonthYear.getMonth();
+                    const firstDayOfMonth = new Date(year, month, 1);
+                    const lastDayOfMonth = new Date(year, month + 1, 0);
+                    
+                    const days = [];
+                    const firstDayOfWeek = firstDayOfMonth.getDay();
+                    
+                    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+                        const d = new Date(year, month, 1 - i);
+                        days.push(this.formatDayObj(d, false));
+                    }
+                    for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
+                        const d = new Date(year, month, i);
+                        days.push(this.formatDayObj(d, true));
+                    }
+                    const remaining = 42 - days.length;
+                    for (let i = 1; i <= remaining; i++) {
+                        const d = new Date(year, month + 1, i);
+                        days.push(this.formatDayObj(d, false));
+                    }
+                    return days;
+                },
+                formatDayObj(d, isCurrentMonth) {
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const dateString = `${year}-${month}-${day}`;
+                    const dayTasks = this.tasks.filter(t => t.dueDate === dateString);
+                    return {
+                        dateString,
+                        dayNumber: d.getDate(),
+                        isCurrentMonth,
+                        isToday: dateString === this.todayString,
+                        tasks: dayTasks
+                    };
+                },
+
+                openHabitModal() {
+                    this.newHabit = { emoji: '', name: '' };
+                    this.habitModalOpen = true;
+                },
+                saveHabit() {
+                    if (!this.newHabit.name.trim()) return;
+                    this.habits.push({
+                        id: 'h_' + Date.now(),
+                        emoji: this.newHabit.emoji.trim() || '⭐',
+                        name: this.newHabit.name.trim()
+                    });
+                    this.habitModalOpen = false;
+                    this.saveData();
+                },
+                toggleHabitToday(habitId) {
+                    const dateStr = this.todayString;
+                    if (!this.habitLogs[dateStr]) {
+                        this.habitLogs[dateStr] = [];
+                    }
+                    const idx = this.habitLogs[dateStr].indexOf(habitId);
+                    if (idx > -1) {
+                        this.habitLogs[dateStr].splice(idx, 1);
+                    } else {
+                        this.habitLogs[dateStr].push(habitId);
                     }
                     this.saveData();
-                    this.habitModalOpen = false;
+                },
+                isHabitCheckedToday(habitId) {
+                    const dateStr = this.todayString;
+                    return this.habitLogs[dateStr] && this.habitLogs[dateStr].includes(habitId);
+                },
+                getHabitCount(habitId) {
+                    let count = 0;
+                    const currentPrefix = this.todayString.slice(0, 7);
+                    Object.keys(this.habitLogs).forEach(dateStr => {
+                        if (dateStr.startsWith(currentPrefix) && this.habitLogs[dateStr].includes(habitId)) {
+                            count++;
+                        }
+                    });
+                    return count;
+                },
+                get todayCompletionRate() {
+                    const list = this.tasks.filter(t => t.dueDate === this.todayString);
+                    if (list.length === 0) return 0;
+                    const completed = list.filter(t => t.completed).length;
+                    return Math.round((completed / list.length) * 100);
+                },
+                get weekCompletionRate() { return this.todayCompletionRate; },
+                get monthCompletionRate() { return this.todayCompletionRate; },
+                getListCompletionRate(listId) {
+                    const list = this.tasks.filter(t => t.listId === listId);
+                    if (list.length === 0) return 0;
+                    const completed = list.filter(t => t.completed).length;
+                    return Math.round((completed / list.length) * 100);
+                },
+                getTagCompletionRate(tagId) {
+                    const list = this.tasks.filter(t => t.tagIds && t.tagIds.includes(tagId));
+                    if (list.length === 0) return 0;
+                    const completed = list.filter(t => t.completed).length;
+                    return Math.round((completed / list.length) * 100);
                 },
 
-                deleteHabit(id) {
-                    this.habits = this.habits.filter(h => h.id !== id);
-                    this.saveData();
-                },
-
-                // 数据备份与恢复
                 exportData() {
                     const data = {
                         tasks: this.tasks,
                         trashTasks: this.trashTasks,
-                        habits: this.habits,
-                        habitLogs: this.habitLogs,
                         folders: this.folders,
-                        looseCategories: this.looseCategories,
-                        tags: this.tags
+                        lists: this.lists,
+                        tags: this.tags,
+                        habits: this.habits,
+                        habitLogs: this.habitLogs
                     };
                     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `universe_center_backup_${this.todayFormattedDate}.json`;
+                    a.download = `universe_center_backup_${this.todayString}.json`;
                     a.click();
+                    URL.revokeObjectURL(url);
                 },
-
                 importData(event) {
                     const file = event.target.files[0];
                     if (!file) return;
@@ -1286,15 +1105,15 @@
                             const data = JSON.parse(e.target.result);
                             if (data.tasks) this.tasks = data.tasks;
                             if (data.trashTasks) this.trashTasks = data.trashTasks;
+                            if (data.folders) this.folders = data.folders;
+                            if (data.lists) this.lists = data.lists;
+                            if (data.tags) this.tags = data.tags;
                             if (data.habits) this.habits = data.habits;
                             if (data.habitLogs) this.habitLogs = data.habitLogs;
-                            if (data.folders) this.folders = data.folders;
-                            if (data.looseCategories) this.looseCategories = data.looseCategories;
-                            if (data.tags) this.tags = data.tags;
                             this.saveData();
-                            alert('数据恢复成功！');
-                        } catch (err) {
-                            alert('解析备份文件失败，请确保是正确的JSON格式。');
+                            alert('备份数据导入成功！');
+                        } catch(err) {
+                            alert('导入失败，JSON 文件格式错误！');
                         }
                     };
                     reader.readAsText(file);
