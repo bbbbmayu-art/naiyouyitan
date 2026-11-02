@@ -218,7 +218,7 @@
             
             <!-- ☀️ 每日待办视图 -->
             <div x-show="currentView === 'daily'" class="max-w-4xl mx-auto space-y-6">
-                <!-- 每日打卡小部件 (今日概览已删除) -->
+                <!-- 每日打卡小部件 -->
                 <div x-show="widgets.habit" class="bg-gradient-to-br from-pink-50 to-yellow-50 p-5 rounded-2xl border border-pink-100 shadow-sm">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="font-bold text-gray-800 text-sm flex items-center space-x-2">
@@ -240,7 +240,6 @@
 
                 <!-- 待办任务列表 -->
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
-                    <!-- 顶部标题与自适应横排筛选区 (修复竖排问题) -->
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-100 pb-3">
                         <div class="flex items-center space-x-3">
                             <h3 class="font-bold text-gray-800">☀️ 每日待办清单</h3>
@@ -273,7 +272,6 @@
                                                   x-text="getListName(task.listId)"></span>
                                             <span x-show="task.dueDate" class="text-xs px-2 py-0.5 rounded-md bg-gray-100 text-gray-600" x-text="task.dueDate"></span>
                                             <span x-show="!task.dueDate" class="text-xs px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 border border-amber-100">无日期</span>
-                                            <span x-show="task.recurrence && task.recurrence !== 'none'" class="text-xs px-2 py-0.5 rounded-md bg-purple-50 text-purple-600 border border-purple-100 font-medium" x-text="getRecurrenceLabel(task.recurrence)"></span>
                                             <template x-for="tag in (task.tags || [])" :key="tag">
                                                 <span class="text-xs px-2 py-0.5 rounded-md bg-pink-100 text-pink-600 font-medium" x-text="'#' + tag"></span>
                                             </template>
@@ -580,7 +578,6 @@
                                         <div class="flex gap-1 mt-1">
                                             <span x-show="task.dueDate" class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600" x-text="task.dueDate"></span>
                                             <span x-show="!task.dueDate" class="text-xs px-2 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-100">无日期</span>
-                                            <span x-show="task.recurrence && task.recurrence !== 'none'" class="text-xs px-2 py-0.5 rounded bg-purple-50 text-purple-600 border border-purple-100 font-medium" x-text="getRecurrenceLabel(task.recurrence)"></span>
                                             <template x-for="tag in (task.tags || [])" :key="tag">
                                                 <span class="text-xs px-2 py-0.5 rounded bg-pink-100 text-pink-600 font-medium" x-text="'#' + tag"></span>
                                             </template>
@@ -616,7 +613,6 @@
                                         <p class="text-sm font-medium" :class="task.completed ? 'line-through text-gray-400' : 'text-gray-800'" x-text="task.title"></p>
                                         <div class="flex gap-1 mt-1">
                                             <span class="text-xs px-2 py-0.5 rounded font-medium text-white inline-block" :style="'background-color: ' + getListColor(task.listId)" x-text="getListName(task.listId)"></span>
-                                            <span x-show="task.recurrence && task.recurrence !== 'none'" class="text-xs px-2 py-0.5 rounded bg-purple-50 text-purple-600 border border-purple-100 font-medium" x-text="getRecurrenceLabel(task.recurrence)"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -662,17 +658,6 @@
                         </div>
                         <input type="date" x-model="editingTask.dueDate" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm">
                     </div>
-                </div>
-
-                <!-- 循环周期选择 -->
-                <div>
-                    <label class="text-xs font-semibold text-gray-500 mb-1 block">循环周期</label>
-                    <select x-model="editingTask.recurrence" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm">
-                        <option value="none">不循环 (单次任务)</option>
-                        <option value="daily">每日循环</option>
-                        <option value="weekly">每周循环</option>
-                        <option value="monthly">每月循环</option>
-                    </select>
                 </div>
 
                 <div>
@@ -828,7 +813,7 @@
                 profile: { name: '宇宙探索者', bio: '保持热爱，奔赴山海', avatar: '🌸' },
                 openProfileModal: false,
 
-                widgets: { habit: true }, // 今日概览组件已移除
+                widgets: { habit: true },
 
                 folders: [
                     { id: 'f1', name: '工作与学习', color: '#FF8FAB' },
@@ -850,12 +835,12 @@
                 deleteTargetId: '',
 
                 tasks: [
-                    { id: 't1', title: '完成宇宙中心 PWA 原型架构', listId: 'l1', dueDate: new Date().toISOString().split('T')[0], tags: ['工作', '架构'], completed: false, recurrence: 'none' },
-                    { id: 't2', title: '买一杯热拿铁咖啡', listId: 'l2', dueDate: new Date().toISOString().split('T')[0], tags: ['生活'], completed: true, recurrence: 'daily' }
+                    { id: 't1', title: '完成宇宙中心 PWA 原型架构', listId: 'l1', dueDate: new Date().toISOString().split('T')[0], tags: ['工作', '架构'], completed: false },
+                    { id: 't2', title: '买一杯热拿铁咖啡', listId: 'l2', dueDate: new Date().toISOString().split('T')[0], tags: ['生活'], completed: true }
                 ],
                 trashTasks: [],
                 openTaskModal: false,
-                editingTask: { id: '', title: '', listId: '', dueDate: '', tagsInput: '', recurrence: 'none' },
+                editingTask: { id: '', title: '', listId: '', dueDate: '', tagsInput: '' },
                 filterHideCompleted: false,
                 filterDateType: 'all',
 
@@ -949,24 +934,16 @@
                     return this.currentView.startsWith('tag_') ? this.currentView.replace('tag_', '') : '';
                 },
 
-                getRecurrenceLabel(rec) {
-                    if (rec === 'daily') return '🔄 每天';
-                    if (rec === 'weekly') return '🔄 每周';
-                    if (rec === 'monthly') return '🔄 每月';
-                    return '';
-                },
-
-                // 任务操作
                 openTaskModalForCreate() {
-                    this.editingTask = { id: '', title: '', listId: this.lists[0]?.id || '', dueDate: new Date().toISOString().split('T')[0], tagsInput: '', recurrence: 'none' };
+                    this.editingTask = { id: '', title: '', listId: this.lists[0]?.id || '', dueDate: new Date().toISOString().split('T')[0], tagsInput: '' };
                     this.openTaskModal = true;
                 },
                 openTaskModalForCreateWithList(listId) {
-                    this.editingTask = { id: '', title: '', listId: listId, dueDate: new Date().toISOString().split('T')[0], tagsInput: '', recurrence: 'none' };
+                    this.editingTask = { id: '', title: '', listId: listId, dueDate: new Date().toISOString().split('T')[0], tagsInput: '' };
                     this.openTaskModal = true;
                 },
                 openTaskModalForCreateWithDate(dateStr) {
-                    this.editingTask = { id: '', title: '', listId: this.lists[0]?.id || '', dueDate: dateStr, tagsInput: '', recurrence: 'none' };
+                    this.editingTask = { id: '', title: '', listId: this.lists[0]?.id || '', dueDate: dateStr, tagsInput: '' };
                     this.openTaskModal = true;
                 },
                 openTaskModalForEdit(task) {
@@ -975,8 +952,7 @@
                         title: task.title,
                         listId: task.listId,
                         dueDate: task.dueDate || '',
-                        tagsInput: (task.tags || []).join(', '),
-                        recurrence: task.recurrence || 'none'
+                        tagsInput: (task.tags || []).join(', ')
                     };
                     this.openTaskModal = true;
                 },
@@ -994,7 +970,6 @@
                             t.listId = this.editingTask.listId;
                             t.dueDate = this.editingTask.dueDate ? this.editingTask.dueDate.trim() : '';
                             t.tags = tagsArray;
-                            t.recurrence = this.editingTask.recurrence || 'none';
                         }
                     } else {
                         this.tasks.push({
@@ -1003,53 +978,21 @@
                             listId: this.editingTask.listId,
                             dueDate: this.editingTask.dueDate ? this.editingTask.dueDate.trim() : '',
                             tags: tagsArray,
-                            completed: false,
-                            recurrence: this.editingTask.recurrence || 'none'
+                            completed: false
                         });
                     }
                     this.openTaskModal = false;
                     this.saveToLocalStorage();
                 },
                 
-                // 勾选完成 + 循环任务自动生成下个周期
                 toggleTaskComplete(id) {
                     let t = this.tasks.find(x => x.id === id);
                     if (t) {
                         t.completed = !t.completed;
-                        
-                        // 若勾选完成且设置了循环规则，则自动生成下一周期的任务
-                        if (t.completed && t.recurrence && t.recurrence !== 'none' && t.dueDate) {
-                            let nextDate = new Date(t.dueDate);
-                            if (isNaN(nextDate.getTime())) {
-                                nextDate = new Date();
-                            }
-                            if (t.recurrence === 'daily') {
-                                nextDate.setDate(nextDate.getDate() + 1);
-                            } else if (t.recurrence === 'weekly') {
-                                nextDate.setDate(nextDate.getDate() + 7);
-                            } else if (t.recurrence === 'monthly') {
-                                nextDate.setMonth(nextDate.getMonth() + 1);
-                            }
-                            let nextDateStr = nextDate.toISOString().split('T')[0];
-                            
-                            let exists = this.tasks.some(x => x.title === t.title && x.dueDate === nextDateStr && !x.completed);
-                            if (!exists) {
-                                this.tasks.push({
-                                    id: 't_' + Date.now(),
-                                    title: t.title,
-                                    listId: t.listId,
-                                    dueDate: nextDateStr,
-                                    tags: [...(t.tags || [])],
-                                    completed: false,
-                                    recurrence: t.recurrence
-                                });
-                            }
-                        }
                         this.saveToLocalStorage();
                     }
                 },
 
-                // 标签编辑/重命名功能
                 editTag(oldTag) {
                     let newTag = prompt(`将标签 "#${oldTag}" 修改为：`, oldTag);
                     if (newTag !== null) {
