@@ -205,11 +205,6 @@
 
             <!-- 右侧快捷操作 -->
             <div class="flex items-center space-x-3">
-                <template x-if="currentView === 'daily'">
-                    <button @click="openWidgetConfig = true" class="text-xs bg-pink-50 hover:bg-pink-100 text-pink-600 px-3 py-1.5 rounded-xl font-medium transition-colors flex items-center space-x-1">
-                        <span>⚙️ 每日小部件</span>
-                    </button>
-                </template>
                 <template x-if="currentView !== 'trash'">
                     <button @click="openTaskModalForCreate()" class="bg-gradient-to-r from-pink-400 to-pink-500 hover:from-pink-500 hover:to-pink-600 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-pink-200 transition-all transform active:scale-95 flex items-center space-x-1">
                         <span>+ 新建任务</span>
@@ -223,53 +218,38 @@
             
             <!-- ☀️ 每日待办视图 -->
             <div x-show="currentView === 'daily'" class="max-w-4xl mx-auto space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- 1. 每日打卡小部件 -->
-                    <div x-show="widgets.habit" class="bg-gradient-to-br from-pink-50 to-yellow-50 p-5 rounded-2xl border border-pink-100 shadow-sm">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="font-bold text-gray-800 text-sm flex items-center space-x-2">
-                                <span>⚡ 今日习惯速打卡</span>
-                            </h3>
-                            <span class="text-xs text-gray-400" x-text="getHabitProgressText()"></span>
-                        </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            <template x-for="habit in habits" :key="habit.id">
-                                <button @click="toggleHabitToday(habit.id)"
-                                        :class="isHabitDoneToday(habit.id) ? 'bg-pink-500 text-white shadow-sm border-transparent' : 'bg-white/80 text-gray-700 hover:bg-white border-pink-100'"
-                                        class="p-2.5 rounded-xl border text-xs flex items-center space-x-2 transition-all transform active:scale-95">
-                                    <span class="text-base" x-text="habit.emoji"></span>
-                                    <span class="truncate font-medium" x-text="habit.name"></span>
-                                </button>
-                            </template>
-                        </div>
+                <!-- 每日打卡小部件 (今日概览已删除) -->
+                <div x-show="widgets.habit" class="bg-gradient-to-br from-pink-50 to-yellow-50 p-5 rounded-2xl border border-pink-100 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-gray-800 text-sm flex items-center space-x-2">
+                            <span>⚡ 今日习惯速打卡</span>
+                        </h3>
+                        <span class="text-xs text-gray-400" x-text="getHabitProgressText()"></span>
                     </div>
-
-                    <!-- 2. 日历待办摘要小部件 -->
-                    <div x-show="widgets.calendar" class="bg-gradient-to-br from-yellow-50 to-pink-50 p-5 rounded-2xl border border-yellow-100 shadow-sm flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <h3 class="font-bold text-gray-800 text-sm">📅 今日日程概览</h3>
-                                <span class="text-xs text-gray-500" x-text="getTodayDateStr()"></span>
-                            </div>
-                            <p class="text-xs text-gray-600 mb-3" x-text="getTodayTasksSummary()"></p>
-                        </div>
-                        <button @click="currentView = 'calendar'" class="self-start text-xs bg-white hover:bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-xl font-medium shadow-sm transition-colors border border-yellow-200">
-                            进入完整日历 ➔
-                        </button>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <template x-for="habit in habits" :key="habit.id">
+                            <button @click="toggleHabitToday(habit.id)"
+                                    :class="isHabitDoneToday(habit.id) ? 'bg-pink-500 text-white shadow-sm border-transparent' : 'bg-white/80 text-gray-700 hover:bg-white border-pink-100'"
+                                    class="p-2.5 rounded-xl border text-xs flex items-center space-x-2 transition-all transform active:scale-95">
+                                <span class="text-base" x-text="habit.emoji"></span>
+                                <span class="truncate font-medium" x-text="habit.name"></span>
+                            </button>
+                        </template>
                     </div>
                 </div>
 
                 <!-- 待办任务列表 -->
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
-                    <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <!-- 顶部标题与自适应横排筛选区 (修复竖排问题) -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-100 pb-3">
                         <div class="flex items-center space-x-3">
                             <h3 class="font-bold text-gray-800">☀️ 每日待办清单</h3>
                             <span class="text-xs px-2 py-0.5 rounded-full bg-pink-100 text-pink-600 font-semibold" x-text="getFilteredTasks().length"></span>
                         </div>
-                        <div class="flex items-center space-x-2 text-xs">
-                            <label class="flex items-center space-x-1 cursor-pointer select-none text-gray-600 bg-gray-50 px-2.5 py-1.5 rounded-xl border border-gray-200">
+                        <div class="flex items-center gap-2 text-xs flex-wrap">
+                            <label class="flex items-center space-x-1.5 cursor-pointer select-none text-gray-600 bg-gray-50 px-2.5 py-1.5 rounded-xl border border-gray-200">
                                 <input type="checkbox" x-model="filterHideCompleted" class="rounded text-pink-500 focus:ring-pink-400">
-                                <span>隐藏已完成</span>
+                                <span class="whitespace-nowrap">隐藏已完成</span>
                             </label>
                             <select x-model="filterDateType" class="bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-300">
                                 <option value="all">全部时间</option>
@@ -655,7 +635,7 @@
 
     <!-- ======================= 弹窗组件群 ======================= -->
 
-    <!-- 1. 新建/编辑任务弹窗 (增加循环选项) -->
+    <!-- 1. 新建/编辑任务弹窗 -->
     <div x-show="openTaskModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
         <div @click.away="openTaskModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 border border-pink-100">
             <h3 class="font-bold text-gray-800 text-lg" x-text="editingTask.id ? '编辑待办任务' : '新建待办任务'"></h3>
@@ -816,27 +796,7 @@
         </div>
     </div>
 
-    <!-- 6. 每日小部件显隐配置弹窗 -->
-    <div x-show="openWidgetConfig" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
-        <div @click.away="openWidgetConfig = false" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 border border-pink-100">
-            <h3 class="font-bold text-gray-800 text-lg">每日小部件显隐设置</h3>
-            <div class="space-y-3">
-                <label class="flex items-center justify-between p-3 rounded-2xl bg-gray-50 cursor-pointer">
-                    <span class="text-sm font-medium text-gray-700">⚡ 今日习惯打卡部件</span>
-                    <input type="checkbox" x-model="widgets.habit" class="w-5 h-5 rounded text-pink-500">
-                </label>
-                <label class="flex items-center justify-between p-3 rounded-2xl bg-gray-50 cursor-pointer">
-                    <span class="text-sm font-medium text-gray-700">📅 今日日程概览部件</span>
-                    <input type="checkbox" x-model="widgets.calendar" class="w-5 h-5 rounded text-pink-500">
-                </label>
-            </div>
-            <div class="flex justify-end pt-2">
-                <button @click="openWidgetConfig = false" class="px-5 py-2 rounded-xl bg-pink-500 hover:bg-pink-600 text-white text-sm font-semibold shadow-md">完成</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 7. 侧边栏标签统一管理弹窗 (支持直接编辑/重命名与删除) -->
+    <!-- 6. 侧边栏标签统一管理弹窗 -->
     <div x-show="openTagManagerModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
         <div @click.away="openTagManagerModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 border border-pink-100">
             <h3 class="font-bold text-gray-800 text-lg">标签资产管理</h3>
@@ -868,8 +828,7 @@
                 profile: { name: '宇宙探索者', bio: '保持热爱，奔赴山海', avatar: '🌸' },
                 openProfileModal: false,
 
-                widgets: { habit: true, calendar: true },
-                openWidgetConfig: false,
+                widgets: { habit: true }, // 今日概览组件已移除
 
                 folders: [
                     { id: 'f1', name: '工作与学习', color: '#FF8FAB' },
@@ -1073,7 +1032,6 @@
                             }
                             let nextDateStr = nextDate.toISOString().split('T')[0];
                             
-                            // 检查是否已存在同名且同日期的未来任务，避免重复生成
                             let exists = this.tasks.some(x => x.title === t.title && x.dueDate === nextDateStr && !x.completed);
                             if (!exists) {
                                 this.tasks.push({
@@ -1097,11 +1055,9 @@
                     if (newTag !== null) {
                         newTag = newTag.trim().replace(/^#/, '');
                         if (newTag && newTag !== oldTag) {
-                            // 检查新标签是否已存在，如存在则合并或直接替换
                             this.tasks.forEach(task => {
                                 if (task.tags && task.tags.includes(oldTag)) {
                                     task.tags = task.tags.map(t => t === oldTag ? newTag : t);
-                                    // 去重
                                     task.tags = Array.from(new Set(task.tags));
                                 }
                             });
@@ -1345,11 +1301,6 @@
                 saveProfile() {
                     this.openProfileModal = false;
                     this.saveToLocalStorage();
-                },
-                getTodayTasksSummary() {
-                    let today = this.getTodayDateStr();
-                    let count = this.tasks.filter(t => t.dueDate === today && !t.completed).length;
-                    return count > 0 ? `今日还有 ${count} 项未完成任务，加油！` : '今日任务已全部清空，太棒啦 🎉';
                 },
 
                 calendarYearMonthStr() {
