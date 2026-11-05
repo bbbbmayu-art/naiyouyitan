@@ -47,7 +47,7 @@
          x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
          class="fixed inset-0 bg-black/30 z-40 md:hidden backdrop-blur-sm"></div>
 
-    <!-- 侧边栏 Sidebar (平板滚动优化) -->
+    <!-- 侧边栏 Sidebar (适配平板滚动) -->
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" 
            class="fixed md:static inset-y-0 left-0 z-50 w-72 bg-[#FFF0F7] border-r border-pink-100 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 shadow-lg md:shadow-none h-screen overflow-hidden">
         
@@ -63,7 +63,7 @@
             <button @click="openProfileModal = true" class="text-gray-400 hover:text-pink-500 p-1 rounded-lg hover:bg-white/60 transition-colors">✏️</button>
         </div>
 
-        <!-- 导航与列表容器 (确保平板纵向滚动流畅) -->
+        <!-- 导航菜单 (支持纵向滚动) -->
         <div class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
             <div class="space-y-1">
                 <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">主导航</p>
@@ -95,7 +95,7 @@
                     </div>
                 </div>
 
-                <!-- 根目录清单 -->
+                <!-- 根目录清单列表 -->
                 <div class="space-y-1 mt-1">
                     <template x-for="list in lists.filter(l => !l.folderId)" :key="list.id">
                         <div class="group flex items-center justify-between px-3 py-2 rounded-xl text-sm hover:bg-white/60 transition-colors"
@@ -112,7 +112,7 @@
                     </template>
                 </div>
 
-                <!-- 文件夹嵌套 (标题设为 text-base font-extrabold) -->
+                <!-- 文件夹嵌套结构 (标题设为 text-base font-extrabold) -->
                 <template x-for="(folder, fIndex) in folders" :key="folder.id">
                     <div class="mt-3 space-y-1">
                         <div class="group flex items-center justify-between px-3 py-2 text-base font-extrabold text-gray-800 bg-pink-100/60 rounded-xl shadow-2xs">
@@ -144,7 +144,7 @@
                 </template>
             </div>
 
-            <!-- 标签管理 -->
+            <!-- 侧边栏标签管理 -->
             <div class="space-y-2 pt-2 border-t border-pink-200/40">
                 <div class="flex items-center justify-between px-3">
                     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">标签管理</p>
@@ -171,7 +171,7 @@
         </div>
     </aside>
 
-    <!-- 主内容区 Main Content Area (平板滚动优化) -->
+    <!-- 主内容区 Main Content Area (完美支持平板与手机顺畅纵向滚动) -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden bg-white">
         <header class="h-16 border-b border-gray-100 flex items-center justify-between px-4 md:px-8 bg-white/80 backdrop-blur-md z-30 flex-shrink-0">
             <div class="flex items-center space-x-3">
@@ -188,7 +188,7 @@
             </div>
         </header>
 
-        <!-- 内容视口：支持平板和手机完美滚动 -->
+        <!-- 内容视口：完美解决平板拉不到底部的滚动问题 -->
         <div class="flex-1 overflow-y-auto p-4 md:p-8">
             <!-- ☀️ 每日待办 -->
             <div x-show="currentView === 'daily'" class="max-w-4xl mx-auto space-y-6 pb-12">
@@ -258,7 +258,7 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button @click="openTaskModalForEdit(task)" class="p-1.5 text-gray-400 hover:text-pink-600 rounded-lg">✏️</button>
+                                    <button @click="openTaskModalForEdit(task)" class="p-1.5 text-gray-400 hover:text-pink-600 rounded-lg" title="编辑任务">✏️</button>
                                     <button @click="moveToTrash('task', task)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg" title="移入回收站">🗑️</button>
                                 </div>
                             </div>
@@ -321,8 +321,8 @@
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <span class="text-xs px-2 py-0.5 rounded font-medium text-white" :style="'background-color: ' + getListColor(task.listId)" x-text="getListName(task.listId)"></span>
-                                    <button @click="openTaskModalForEdit(task)" class="text-gray-400 hover:text-pink-600 p-1">✏️</button>
-                                    <button @click="moveToTrash('task', task)" class="text-gray-400 hover:text-red-500 p-1">🗑️</button>
+                                    <button @click="openTaskModalForEdit(task)" class="text-gray-400 hover:text-pink-600 p-1" title="编辑">✏️</button>
+                                    <button @click="moveToTrash('task', task)" class="text-gray-400 hover:text-red-500 p-1" title="删除">🗑️</button>
                                 </div>
                             </div>
                         </template>
@@ -337,7 +337,7 @@
                         <h2 class="font-bold text-gray-800 text-lg">⚡ 习惯每日打卡</h2>
                         <p class="text-xs text-gray-400">培养良好习惯，见证微小而坚定的进步</p>
                     </div>
-                    <button @click="openHabitModalForCreate()" class="bg-pink-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-pink-250">+ 新建习惯</button>
+                    <button @click="openHabitModalForCreate()" class="bg-pink-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-pink-200">+ 新建习惯</button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -352,7 +352,7 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center space-x-1">
-                                    <button @click="openHabitModalForEdit(habit)" class="p-1.5 text-gray-400 hover:text-pink-600 rounded-lg">✏️</button>
+                                    <button @click="openHabitModalForEdit(habit)" class="p-1.5 text-gray-400 hover:text-pink-600 rounded-lg" title="编辑习惯">✏️</button>
                                     <button @click="moveToTrash('habit', habit)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg" title="删除习惯">🗑️</button>
                                 </div>
                             </div>
@@ -591,6 +591,26 @@
         </div>
     </div>
 
+    <!-- 每日小部件显隐配置弹窗 -->
+    <div x-show="openWidgetConfig" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div @click.away="openWidgetConfig = false" class="bg-white rounded-3xl p-6 w-full max-w-sm space-y-4">
+            <h3 class="font-bold text-gray-800 text-lg">每日小部件显隐设置</h3>
+            <div class="space-y-3">
+                <label class="flex items-center justify-between p-3 rounded-2xl bg-gray-50 cursor-pointer">
+                    <span class="text-sm font-medium text-gray-700">⚡ 今日习惯打卡部件</span>
+                    <input type="checkbox" x-model="widgets.habit" class="w-5 h-5 rounded text-pink-500">
+                </label>
+                <label class="flex items-center justify-between p-3 rounded-2xl bg-gray-50 cursor-pointer">
+                    <span class="text-sm font-medium text-gray-700">📅 今日日程概览部件</span>
+                    <input type="checkbox" x-model="widgets.calendar" class="w-5 h-5 rounded text-pink-500">
+                </label>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button @click="openWidgetConfig = false" class="px-5 py-2 rounded-xl bg-pink-500 text-white text-sm font-semibold">完成</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         function universeApp() {
             return {
@@ -617,7 +637,7 @@
                 tasks: [
                     { id: 't1', title: '完成宇宙中心原型架构', listId: 'l1', dueDate: new Date().toISOString().split('T')[0], tags: ['💡 灵感', '工作'], completed: false }
                 ],
-                trashBin: [], // 统一回收站（存放待办、习惯、文件夹、清单、标签）
+                trashBin: [], 
                 openTaskModal: false,
                 editingTask: { id: '', title: '', listId: '', dueDate: '', tagsInput: '' },
                 filterHideCompleted: false,
@@ -682,14 +702,13 @@
                 getActiveListColor() { return this.getListColor(this.getActiveListId()); },
                 getActiveTagName() { return this.currentView.startsWith('tag_') ? this.currentView.replace('tag_', '') : ''; },
 
-                // 统一移入回收站
                 moveToTrash(type, item) {
                     let now = new Date();
                     let timeStr = now.toISOString().split('T')[0] + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
                     
                     this.trashBin.unshift({
                         id: 'trash_' + Date.now() + Math.random(),
-                        type: type, // 'task', 'habit', 'folder', 'list', 'tag'
+                        type: type, 
                         data: item,
                         deletedAt: timeStr,
                         timestamp: Date.now()
@@ -738,7 +757,6 @@
                     }
                 },
 
-                // 待办任务创建与编辑逻辑
                 openTaskModalForCreate() {
                     this.editingTask = { id: '', title: '', listId: this.lists[0]?.id || '', dueDate: new Date().toISOString().split('T')[0], tagsInput: '' };
                     this.openTaskModal = true;
@@ -807,7 +825,6 @@
                     if (t) { t.completed = !t.completed; this.saveToLocalStorage(); }
                 },
 
-                // 文件夹与清单
                 openCreateModal(type) {
                     this.folderListModalType = type;
                     this.folderListModalTitle = type === 'folder' ? '新建文件夹' : '新建清单';
@@ -842,7 +859,6 @@
                     this.saveToLocalStorage();
                 },
 
-                // 习惯创建与编辑逻辑
                 openHabitModalForCreate() {
                     this.editingHabit = { id: '', name: '', emoji: '✨', target: 1 };
                     this.openHabitModal = true;
@@ -881,7 +897,6 @@
                 },
                 getHabitProgressText() { return `已打卡 ${this.habits.filter(h => this.isHabitDoneToday(h.id)).length}/${this.habits.length}`; },
 
-                // 日历
                 calendarYearMonthStr() { return `${this.calendarYear}年 ${this.calendarMonth + 1}月`; },
                 changeCalendarMonth(d) {
                     this.calendarMonth += d;
@@ -905,7 +920,6 @@
                 selectCalendarDate(ds) { this.selectedCalendarDate = ds; },
                 getTasksForDate(ds) { return this.tasks.filter(t => t.dueDate === ds); },
 
-                // 复盘统计
                 getHabitMonthlyDoneDays(id) {
                     let prefix = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
                     return Object.keys(this.habitLogs).filter(d => d.startsWith(prefix) && this.habitLogs[d][id] > 0).length;
@@ -943,7 +957,7 @@
                     }
                 },
                 exportData() {
-                    let blob = new Blob([localStorage.getItem('universe_center_data') || '{}'], { type: 'application/json' });
+                    let blob = new Blob([localStorage.getItem('universe_center_data'] || '{}'), { type: 'application/json' });
                     let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'universe_backup.json'; a.click();
                 },
                 importData(e) {
