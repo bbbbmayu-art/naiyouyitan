@@ -25,7 +25,7 @@
             }
         }
     </script>
-    <!-- Alpine.js for reactive UI state -->
+    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -47,7 +47,7 @@
          x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
          class="fixed inset-0 bg-black/30 z-40 md:hidden backdrop-blur-sm"></div>
 
-    <!-- 侧边栏 Sidebar (适配平板滚动) -->
+    <!-- 侧边栏 Sidebar (解决平板与手机纵向滚动) -->
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" 
            class="fixed md:static inset-y-0 left-0 z-50 w-72 bg-[#FFF0F7] border-r border-pink-100 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 shadow-lg md:shadow-none h-screen overflow-hidden">
         
@@ -63,7 +63,7 @@
             <button @click="openProfileModal = true" class="text-gray-400 hover:text-pink-500 p-1 rounded-lg hover:bg-white/60 transition-colors">✏️</button>
         </div>
 
-        <!-- 导航菜单 (支持纵向滚动) -->
+        <!-- 导航菜单 (支持独立纵向滚动) -->
         <div class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
             <div class="space-y-1">
                 <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">主导航</p>
@@ -112,7 +112,7 @@
                     </template>
                 </div>
 
-                <!-- 文件夹嵌套结构 (标题设为 text-base font-extrabold) -->
+                <!-- 文件夹嵌套结构 (标题设为 text-base font-extrabold 明显放大) -->
                 <template x-for="(folder, fIndex) in folders" :key="folder.id">
                     <div class="mt-3 space-y-1">
                         <div class="group flex items-center justify-between px-3 py-2 text-base font-extrabold text-gray-800 bg-pink-100/60 rounded-xl shadow-2xs">
@@ -171,7 +171,7 @@
         </div>
     </aside>
 
-    <!-- 主内容区 Main Content Area (完美支持平板与手机顺畅纵向滚动) -->
+    <!-- 主内容区 Main Content Area -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden bg-white">
         <header class="h-16 border-b border-gray-100 flex items-center justify-between px-4 md:px-8 bg-white/80 backdrop-blur-md z-30 flex-shrink-0">
             <div class="flex items-center space-x-3">
@@ -188,7 +188,7 @@
             </div>
         </header>
 
-        <!-- 内容视口：完美解决平板拉不到底部的滚动问题 -->
+        <!-- 内容视口：完美解决平板与手机顺畅下拉滚动 -->
         <div class="flex-1 overflow-y-auto p-4 md:p-8">
             <!-- ☀️ 每日待办 -->
             <div x-show="currentView === 'daily'" class="max-w-4xl mx-auto space-y-6 pb-12">
@@ -330,14 +330,14 @@
                 </div>
             </div>
 
-            <!-- ⚡ 习惯打卡 (现支持完整编辑) -->
+            <!-- ⚡ 习惯打卡 (支持编辑与每日自动刷新) -->
             <div x-show="currentView === 'habits'" class="max-w-4xl mx-auto space-y-6 pb-12">
                 <div class="flex items-center justify-between bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
                     <div>
                         <h2 class="font-bold text-gray-800 text-lg">⚡ 习惯每日打卡</h2>
                         <p class="text-xs text-gray-400">培养良好习惯，见证微小而坚定的进步</p>
                     </div>
-                    <button @click="openHabitModalForCreate()" class="bg-pink-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-pink-200">+ 新建习惯</button>
+                    <button @click="openHabitModalForCreate()" class="bg-pink-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-pink-250">+ 新建习惯</button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -957,7 +957,7 @@
                     }
                 },
                 exportData() {
-                    let blob = new Blob([localStorage.getItem('universe_center_data'] || '{}'), { type: 'application/json' });
+                    let blob = new Blob([localStorage.getItem('universe_center_data') || '{}'], { type: 'application/json' });
                     let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'universe_backup.json'; a.click();
                 },
                 importData(e) {
