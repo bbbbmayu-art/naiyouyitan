@@ -48,11 +48,11 @@
          x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
          class="fixed inset-0 bg-black/30 z-40 md:hidden backdrop-blur-sm"></div>
 
-    <!-- 侧边栏 Sidebar (粉黄马卡龙美学 #FFF0F7) -->
+    <!-- 侧边栏 Sidebar -->
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" 
            class="fixed md:static inset-y-0 left-0 z-50 w-72 bg-[#FFF0F7] border-r border-pink-100 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 shadow-lg md:shadow-none">
         
-        <!-- 个人卡片 (可编辑) -->
+        <!-- 个人卡片 -->
         <div class="p-4 border-b border-pink-200/60 flex items-center justify-between bg-white/40">
             <div class="flex items-center space-x-3 cursor-pointer group" @click="openProfileModal = true">
                 <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-300 to-yellow-200 flex items-center justify-center text-2xl shadow-inner group-hover:scale-105 transition-transform" x-text="profile.avatar || '🌸'"></div>
@@ -61,17 +61,13 @@
                     <p class="text-xs text-gray-500 truncate" x-text="profile.bio || '保持热爱，奔赴山海'"></p>
                 </div>
             </div>
-            <button @click="openProfileModal = true" class="text-gray-400 hover:text-pink-500 p-1 rounded-lg hover:bg-white/60 transition-colors">
-                ✏️
-            </button>
+            <button @click="openProfileModal = true" class="text-gray-400 hover:text-pink-500 p-1 rounded-lg hover:bg-white/60 transition-colors">✏️</button>
         </div>
 
         <!-- 导航菜单 -->
         <div class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-            <!-- 核心视图导航 -->
             <div class="space-y-1">
                 <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">主导航</p>
-                
                 <template x-for="view in [
                     { id: 'daily', name: '☀️ 每日待办', count: getDailyCount() },
                     { id: 'calendar', name: '📅 滴答日历', count: 0 },
@@ -90,21 +86,16 @@
                 </template>
             </div>
 
-            <!-- 清单与文件夹管理模块 -->
+            <!-- 清单与文件夹 -->
             <div class="space-y-2">
                 <div class="flex items-center justify-between px-3">
                     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">清单与文件夹</p>
                     <div class="flex items-center space-x-1">
-                        <button @click="openCreateModal('folder')" class="text-xs bg-white/80 hover:bg-white text-gray-600 px-2 py-1 rounded-lg shadow-sm border border-pink-150 transition-colors">
-                            + 文件夹
-                        </button>
-                        <button @click="openCreateModal('list')" class="text-xs bg-pink-500 hover:bg-pink-600 text-white px-2 py-1 rounded-lg shadow-sm transition-colors">
-                            + 清单
-                        </button>
+                        <button @click="openCreateModal('folder')" class="text-xs bg-white/80 hover:bg-white text-gray-600 px-2 py-1 rounded-lg shadow-sm border border-pink-150">+ 文件夹</button>
+                        <button @click="openCreateModal('list')" class="text-xs bg-pink-500 hover:bg-pink-600 text-white px-2 py-1 rounded-lg shadow-sm">+ 清单</button>
                     </div>
                 </div>
 
-                <!-- 根目录清单列表 -->
                 <div class="space-y-1 mt-1">
                     <template x-for="list in lists.filter(l => !l.folderId)" :key="list.id">
                         <div class="group flex items-center justify-between px-3 py-2 rounded-xl text-sm hover:bg-white/60 transition-colors"
@@ -117,13 +108,12 @@
                                 <button @click.stop="moveRootList(list.id, -1)" class="hover:text-pink-600 px-0.5" title="上移">▲</button>
                                 <button @click.stop="moveRootList(list.id, 1)" class="hover:text-pink-600 px-0.5" title="下移">▼</button>
                                 <button @click.stop="editListOrFolder(list)" class="hover:text-pink-600 ml-1" title="编辑">✏️</button>
-                                <button @click.stop="confirmDeleteList(list)" class="hover:text-red-500 ml-0.5" title="删除清单">×</button>
+                                <button @click.stop="confirmDeleteList(list)" class="hover:text-red-500 ml-0.5" title="删除">×</button>
                             </div>
                         </div>
                     </template>
                 </div>
 
-                <!-- 文件夹嵌套结构 -->
                 <template x-for="(folder, fIndex) in folders" :key="folder.id">
                     <div class="mt-3 space-y-1">
                         <div class="group flex items-center justify-between px-3 py-1.5 text-xs font-extrabold text-gray-700 bg-pink-100/60 rounded-lg">
@@ -134,8 +124,8 @@
                             <div class="hidden group-hover:flex items-center space-x-1 text-gray-400 font-normal">
                                 <button @click.stop="moveFolder(fIndex, -1)" class="hover:text-pink-600 px-0.5" title="上移">▲</button>
                                 <button @click.stop="moveFolder(fIndex, 1)" class="hover:text-pink-600 px-0.5" title="下移">▼</button>
-                                <button @click="editListOrFolder(folder)" class="hover:text-pink-600 ml-1" title="编辑文件夹">✏️</button>
-                                <button @click="confirmDeleteFolder(folder)" class="hover:text-red-500 ml-0.5" title="删除文件夹">×</button>
+                                <button @click="editListOrFolder(folder)" class="hover:text-pink-600 ml-1" title="编辑">✏️</button>
+                                <button @click="confirmDeleteFolder(folder)" class="hover:text-red-500 ml-0.5" title="删除">×</button>
                             </div>
                         </div>
                         <div class="pl-4 space-y-1">
@@ -147,10 +137,10 @@
                                         <span class="truncate" x-text="list.name"></span>
                                     </div>
                                     <div class="hidden group-hover:flex items-center space-x-1 text-xs text-gray-400">
-                                        <button @click.stop="moveFolderList(folder.id, list.id, -1)" class="hover:text-pink-600 px-0.5" title="上移">▲</button>
-                                        <button @click.stop="moveFolderList(folder.id, list.id, 1)" class="hover:text-pink-600 px-0.5" title="下移">▼</button>
-                                        <button @click.stop="editListOrFolder(list)" class="hover:text-pink-600 ml-1" title="编辑">✏️</button>
-                                        <button @click.stop="confirmDeleteList(list)" class="hover:text-red-500 ml-0.5" title="删除清单">×</button>
+                                        <button @click.stop="moveFolderList(folder.id, list.id, -1)" class="hover:text-pink-600 px-0.5">▲</button>
+                                        <button @click.stop="moveFolderList(folder.id, list.id, 1)" class="hover:text-pink-600 px-0.5">▼</button>
+                                        <button @click.stop="editListOrFolder(list)" class="hover:text-pink-600 ml-1">✏️</button>
+                                        <button @click.stop="confirmDeleteList(list)" class="hover:text-red-500 ml-0.5">×</button>
                                     </div>
                                 </div>
                             </template>
@@ -159,7 +149,7 @@
                 </template>
             </div>
 
-            <!-- 侧边栏标签管理入口 -->
+            <!-- 标签管理 -->
             <div class="space-y-2 pt-2 border-t border-pink-200/40">
                 <div class="flex items-center justify-between px-3">
                     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">标签管理</p>
@@ -167,83 +157,62 @@
                 </div>
                 <div class="flex flex-wrap gap-1.5 px-3">
                     <template x-for="tag in allTags" :key="tag">
-                        <div class="group/tag inline-flex items-center text-xs px-2.5 py-1 rounded-lg bg-white/70 hover:bg-white text-gray-600 shadow-sm border border-pink-100 transition-colors">
+                        <div class="group/tag inline-flex items-center text-xs px-2.5 py-1 rounded-lg bg-white/70 hover:bg-white text-gray-600 shadow-sm border border-pink-100">
                             <span @click="currentView = 'tag_' + tag; sidebarOpen = false" class="cursor-pointer" x-text="'#' + tag"></span>
-                            <button @click.stop="deleteTag(tag)" class="ml-1.5 text-gray-400 hover:text-red-500 font-bold px-0.5" title="删除标签">×</button>
+                            <button @click.stop="deleteTag(tag)" class="ml-1.5 text-gray-400 hover:text-red-500 font-bold px-0.5">×</button>
                         </div>
                     </template>
                 </div>
             </div>
         </div>
 
-        <!-- 底部数据备份与恢复 -->
+        <!-- 底部备份 -->
         <div class="p-4 border-t border-pink-200/60 bg-white/40 flex items-center justify-between text-xs text-gray-500">
-            <button @click="exportData()" class="hover:text-pink-600 font-medium flex items-center space-x-1">
-                <span>📥 备份数据</span>
-            </button>
-            <label class="hover:text-pink-600 font-medium cursor-pointer flex items-center space-x-1">
+            <button @click="exportData()" class="hover:text-pink-600 font-medium">📥 备份数据</button>
+            <label class="hover:text-pink-600 font-medium cursor-pointer">
                 <span>📤 恢复数据</span>
                 <input type="file" @change="importData($event)" accept=".json" class="hidden">
             </label>
         </div>
     </aside>
 
-    <!-- 主内容区 Main Content Area -->
+    <!-- 主内容区 -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden bg-white">
-        
-        <!-- 顶栏 Header -->
         <header class="h-16 border-b border-gray-100 flex items-center justify-between px-4 md:px-8 bg-white/80 backdrop-blur-md z-30">
             <div class="flex items-center space-x-3">
-                <button @click="sidebarOpen = !sidebarOpen" class="md:hidden p-2 rounded-xl bg-pink-50 text-pink-600 hover:bg-pink-100 transition-colors">
-                    ☰
-                </button>
+                <button @click="sidebarOpen = !sidebarOpen" class="md:hidden p-2 rounded-xl bg-pink-50 text-pink-600">☰</button>
                 <h1 class="text-lg md:text-xl font-bold text-gray-800" x-text="getViewTitle()"></h1>
             </div>
-
-            <!-- 右侧快捷操作与个人小部件开关 -->
             <div class="flex items-center space-x-3">
                 <template x-if="currentView === 'daily'">
-                    <button @click="openWidgetConfig = true" class="text-xs bg-pink-50 hover:bg-pink-100 text-pink-600 px-3 py-1.5 rounded-xl font-medium transition-colors flex items-center space-x-1">
-                        <span>⚙️ 每日小部件</span>
-                    </button>
+                    <button @click="openWidgetConfig = true" class="text-xs bg-pink-50 hover:bg-pink-100 text-pink-600 px-3 py-1.5 rounded-xl font-medium">⚙️ 每日小部件</button>
                 </template>
                 <template x-if="currentView !== 'trash'">
-                    <button @click="openTaskModalForCreate()" class="bg-gradient-to-r from-pink-400 to-pink-500 hover:from-pink-500 hover:to-pink-600 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-pink-200 transition-all transform active:scale-95 flex items-center space-x-1">
-                        <span>+ 新建任务</span>
-                    </button>
+                    <button @click="openTaskModalForCreate()" class="bg-gradient-to-r from-pink-400 to-pink-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-pink-200">+ 新建任务</button>
                 </template>
             </div>
         </header>
 
-        <!-- 内容渲染视口 -->
         <div class="flex-1 overflow-y-auto p-4 md:p-8">
-            
-            <!-- ☀️ 每日待办视图 (Daily View) -->
+            <!-- ☀️ 每日待办视图 -->
             <div x-show="currentView === 'daily'" class="max-w-4xl mx-auto space-y-6">
-                
-                <!-- 小部件区 -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- 1. 每日打卡小部件 -->
                     <div x-show="widgets.habit" class="bg-gradient-to-br from-pink-50 to-yellow-50 p-5 rounded-2xl border border-pink-100 shadow-sm">
                         <div class="flex items-center justify-between mb-3">
-                            <h3 class="font-bold text-gray-800 text-sm flex items-center space-x-2">
-                                <span>⚡ 今日习惯速打卡</span>
-                            </h3>
+                            <h3 class="font-bold text-gray-800 text-sm">⚡ 今日习惯速打卡</h3>
                             <span class="text-xs text-gray-400" x-text="getHabitProgressText()"></span>
                         </div>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             <template x-for="habit in habits" :key="habit.id">
                                 <button @click="toggleHabitToday(habit.id)"
-                                        :class="isHabitDoneToday(habit.id) ? 'bg-pink-500 text-white shadow-sm border-transparent' : 'bg-white/80 text-gray-700 hover:bg-white border-pink-100'"
-                                        class="p-2.5 rounded-xl border text-xs flex items-center space-x-2 transition-all transform active:scale-95">
+                                        :class="isHabitDoneToday(habit.id) ? 'bg-pink-500 text-white' : 'bg-white/80 text-gray-700 hover:bg-white border-pink-100'"
+                                        class="p-2.5 rounded-xl border text-xs flex items-center space-x-2 transition-all">
                                     <span class="text-base" x-text="habit.emoji"></span>
                                     <span class="truncate font-medium" x-text="habit.name"></span>
                                 </button>
                             </template>
                         </div>
                     </div>
-
-                    <!-- 2. 日历待办摘要小部件 -->
                     <div x-show="widgets.calendar" class="bg-gradient-to-br from-yellow-50 to-pink-50 p-5 rounded-2xl border border-yellow-100 shadow-sm flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between mb-2">
@@ -252,13 +221,10 @@
                             </div>
                             <p class="text-xs text-gray-600 mb-3" x-text="getTodayTasksSummary()"></p>
                         </div>
-                        <button @click="currentView = 'calendar'" class="self-start text-xs bg-white hover:bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-xl font-medium shadow-sm transition-colors border border-yellow-200">
-                            进入完整日历 ➔
-                        </button>
+                        <button @click="currentView = 'calendar'" class="self-start text-xs bg-white hover:bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-xl font-medium border border-yellow-200">进入完整日历 ➔</button>
                     </div>
                 </div>
 
-                <!-- 待办任务列表 -->
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
                     <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                         <div class="flex items-center space-x-3">
@@ -267,10 +233,10 @@
                         </div>
                         <div class="flex items-center space-x-2 text-xs">
                             <label class="flex items-center space-x-1 cursor-pointer select-none text-gray-600 bg-gray-50 px-2.5 py-1.5 rounded-xl border border-gray-200">
-                                <input type="checkbox" x-model="filterHideCompleted" class="rounded text-pink-500 focus:ring-pink-400">
+                                <input type="checkbox" x-model="filterHideCompleted" class="rounded text-pink-500">
                                 <span>隐藏已完成</span>
                             </label>
-                            <select x-model="filterDateType" class="bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-300">
+                            <select x-model="filterDateType" class="bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-gray-600">
                                 <option value="all">全部时间</option>
                                 <option value="today">今日到期</option>
                                 <option value="undated">无日期</option>
@@ -282,13 +248,11 @@
                         <template x-for="task in getFilteredTasks()" :key="task.id">
                             <div class="group flex items-center justify-between p-3.5 rounded-2xl border border-gray-100 hover:border-pink-200 hover:bg-pink-50/20 transition-all shadow-sm">
                                 <div class="flex items-center space-x-3 flex-1 min-w-0">
-                                    <input type="checkbox" :checked="task.completed" @change="toggleTaskComplete(task.id)" class="w-5 h-5 rounded-lg text-pink-500 focus:ring-pink-400 cursor-pointer">
+                                    <input type="checkbox" :checked="task.completed" @change="toggleTaskComplete(task.id)" class="w-5 h-5 rounded-lg text-pink-500 cursor-pointer">
                                     <div class="flex-1 min-w-0">
                                         <p class="text-sm font-medium truncate" :class="task.completed ? 'line-through text-gray-400' : 'text-gray-800'" x-text="task.title"></p>
                                         <div class="flex flex-wrap items-center gap-1.5 mt-1">
-                                            <span class="text-xs px-2 py-0.5 rounded-md font-medium text-white flex items-center space-x-1 shadow-2xs"
-                                                  :style="'background-color: ' + getListColor(task.listId)"
-                                                  x-text="getListName(task.listId)"></span>
+                                            <span class="text-xs px-2 py-0.5 rounded-md font-medium text-white" :style="'background-color: ' + getListColor(task.listId)" x-text="getListName(task.listId)"></span>
                                             <span x-show="task.dueDate" class="text-xs px-2 py-0.5 rounded-md bg-gray-100 text-gray-600" x-text="task.dueDate"></span>
                                             <span x-show="!task.dueDate" class="text-xs px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 border border-amber-100">无日期</span>
                                             <template x-for="tag in (task.tags || [])" :key="tag">
@@ -298,14 +262,12 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button @click="openTaskModalForEdit(task)" class="p-1.5 text-gray-400 hover:text-pink-600 rounded-lg hover:bg-white transition-colors" title="编辑任务">✏️</button>
-                                    <button @click="moveToTrash(task.id)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-white transition-colors" title="移入垃圾桶">🗑️</button>
+                                    <button @click="openTaskModalForEdit(task)" class="p-1.5 text-gray-400 hover:text-pink-600 rounded-lg">✏️</button>
+                                    <button @click="moveToTrash(task.id)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg">🗑️</button>
                                 </div>
                             </div>
                         </template>
-                        <div x-show="getFilteredTasks().length === 0" class="text-center py-12 text-gray-400 text-sm">
-                            暂无符合条件的待办任务，点击右上角新建一个吧 ✨
-                        </div>
+                        <div x-show="getFilteredTasks().length === 0" class="text-center py-12 text-gray-400 text-sm">暂无符合条件的待办任务 ✨</div>
                     </div>
                 </div>
             </div>
@@ -316,16 +278,14 @@
                     <div class="flex items-center justify-between">
                         <h2 class="text-lg font-bold text-gray-800" x-text="calendarYearMonthStr()"></h2>
                         <div class="flex items-center space-x-2">
-                            <button @click="changeCalendarMonth(-1)" class="px-3 py-1.5 rounded-xl border border-gray-200 text-sm font-medium hover:bg-gray-50 transition-colors">◀ 上月</button>
-                            <button @click="goToCurrentMonth()" class="px-3 py-1.5 rounded-xl border border-pink-200 bg-pink-50 text-pink-600 text-sm font-medium hover:bg-pink-100 transition-colors">今天</button>
-                            <button @click="changeCalendarMonth(1)" class="px-3 py-1.5 rounded-xl border border-gray-200 text-sm font-medium hover:bg-gray-50 transition-colors">下月 ▶</button>
+                            <button @click="changeCalendarMonth(-1)" class="px-3 py-1.5 rounded-xl border border-gray-200 text-sm font-medium hover:bg-gray-50">◀ 上月</button>
+                            <button @click="goToCurrentMonth()" class="px-3 py-1.5 rounded-xl border border-pink-200 bg-pink-50 text-pink-600 text-sm font-medium">今天</button>
+                            <button @click="changeCalendarMonth(1)" class="px-3 py-1.5 rounded-xl border border-gray-200 text-sm font-medium hover:bg-gray-50">下月 ▶</button>
                         </div>
                     </div>
-
                     <div class="grid grid-cols-7 gap-2 text-center font-semibold text-xs text-gray-400 uppercase">
                         <div>周日</div><div>周一</div><div>周二</div><div>周三</div><div>周四</div><div>周五</div><div>周六</div>
                     </div>
-
                     <div class="grid grid-cols-7 gap-2">
                         <template x-for="day in calendarDays" :key="day.dateStr">
                             <div @click="selectCalendarDate(day.dateStr)"
@@ -341,11 +301,9 @@
                                 </div>
                                 <div class="space-y-1 mt-1 overflow-hidden">
                                     <template x-for="task in getTasksForDate(day.dateStr).slice(0, 3)" :key="task.id">
-                                        <div class="text-[10px] px-1.5 py-0.5 rounded text-white truncate shadow-2xs flex items-center space-x-1"
+                                        <div class="text-[10px] px-1.5 py-0.5 rounded text-white truncate shadow-2xs"
                                              :class="task.completed ? 'opacity-50 line-through' : ''"
-                                             :style="'background-color: ' + getListColor(task.listId)">
-                                            <span class="truncate" x-text="task.title"></span>
-                                        </div>
+                                             :style="'background-color: ' + getListColor(task.listId)" x-text="task.title"></div>
                                     </template>
                                 </div>
                             </div>
@@ -356,21 +314,19 @@
                 <div x-show="selectedCalendarDate" class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
                     <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                         <h3 class="font-bold text-gray-800" x-text="selectedCalendarDate + ' 的日程安排'"></h3>
-                        <button @click="openTaskModalForCreateWithDate(selectedCalendarDate)" class="text-xs bg-pink-500 text-white px-3 py-1.5 rounded-xl font-semibold hover:bg-pink-600 transition-colors">
-                            + 添加当日日程
-                        </button>
+                        <button @click="openTaskModalForCreateWithDate(selectedCalendarDate)" class="text-xs bg-pink-500 text-white px-3 py-1.5 rounded-xl font-semibold">+ 添加当日日程</button>
                     </div>
                     <div class="space-y-2">
                         <template x-for="task in getTasksForDate(selectedCalendarDate)" :key="task.id">
-                            <div class="group flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-white shadow-2xs hover:border-pink-200">
+                            <div class="group flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-white">
                                 <div class="flex items-center space-x-3">
                                     <input type="checkbox" :checked="task.completed" @change="toggleTaskComplete(task.id)" class="w-4 h-4 rounded text-pink-500">
                                     <span class="text-sm font-medium" :class="task.completed ? 'line-through text-gray-400' : 'text-gray-800'" x-text="task.title"></span>
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <span class="text-xs px-2 py-0.5 rounded font-medium text-white" :style="'background-color: ' + getListColor(task.listId)" x-text="getListName(task.listId)"></span>
-                                    <button @click="openTaskModalForEdit(task)" class="text-gray-400 hover:text-pink-600 p-1 opacity-0 group-hover:opacity-100 transition-opacity">✏️</button>
-                                    <button @click="moveToTrash(task.id)" class="text-gray-400 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity">🗑️</button>
+                                    <button @click="openTaskModalForEdit(task)" class="text-gray-400 hover:text-pink-600 p-1">✏️</button>
+                                    <button @click="moveToTrash(task.id)" class="text-gray-400 hover:text-red-500 p-1">🗑️</button>
                                 </div>
                             </div>
                         </template>
@@ -383,13 +339,10 @@
                 <div class="flex items-center justify-between bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
                     <div>
                         <h2 class="font-bold text-gray-800 text-lg">⚡ 习惯每日打卡</h2>
-                        <p class="text-xs text-gray-400">培养良好习惯，见证每一天微小而坚定的进步</p>
+                        <p class="text-xs text-gray-400">培养良好习惯，见证微小而坚定的进步</p>
                     </div>
-                    <button @click="openHabitModalForCreate()" class="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-pink-200 transition-all">
-                        + 新建习惯
-                    </button>
+                    <button @click="openHabitModalForCreate()" class="bg-pink-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md">+ 新建习惯</button>
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <template x-for="habit in habits" :key="habit.id">
                         <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between space-y-4">
@@ -408,7 +361,7 @@
                             </div>
                             <button @click="toggleHabitToday(habit.id)"
                                     :class="isHabitDoneToday(habit.id) ? 'bg-gradient-to-r from-pink-500 to-rose-400 text-white shadow-md' : 'bg-pink-50 hover:bg-pink-100 text-pink-600'"
-                                    class="w-full py-3 rounded-2xl font-semibold text-sm transition-all transform active:scale-95 flex items-center justify-center space-x-2">
+                                    class="w-full py-3 rounded-2xl font-semibold text-sm transition-all">
                                 <span x-text="isHabitDoneToday(habit.id) ? '✨ 今日已完成打卡' : '⭕ 点击打卡'"></span>
                             </button>
                         </div>
@@ -416,13 +369,12 @@
                 </div>
             </div>
 
-            <!-- 📊 四维深度复盘视图 -->
+            <!-- 📊 四维深度复盘视图 (完整恢复所有统计) -->
             <div x-show="currentView === 'review'" class="max-w-5xl mx-auto space-y-6">
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
                     <h2 class="text-lg font-bold text-gray-800 mb-1">📊 四维生产力深度复盘</h2>
                     <p class="text-xs text-gray-400">多维度精准统计您的时间资产、习惯坚持与执行效率</p>
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
                         <h3 class="font-bold text-gray-800 text-base">⚡ 维度一：习惯打卡按月完成数</h3>
@@ -432,12 +384,11 @@
                                 <div class="p-3.5 rounded-2xl bg-pink-50/40 border border-pink-100 flex items-center justify-between">
                                     <div class="flex items-center space-x-3">
                                         <span class="text-2xl" x-text="habit.emoji"></span>
-                                        <div>
-                                            <p class="text-sm font-bold text-gray-800" x-text="habit.name"></p>
-                                        </div>
+                                        <div><p class="text-sm font-bold text-gray-800" x-text="habit.name"></p></div>
                                     </div>
                                     <div class="text-right">
                                         <span class="text-sm font-bold text-pink-600" x-text="getHabitMonthlyDoneDays(habit.id) + ' 天'"></span>
+                                        <p class="text-[10px] text-gray-400" x-text="'打卡率 ' + getHabitMonthlyPercent(habit.id) + '%'"></p>
                                     </div>
                                 </div>
                             </template>
@@ -453,15 +404,55 @@
                                     <span class="font-bold text-pink-600" x-text="getTodayCompletionRate() + '%'"></span>
                                 </div>
                                 <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                                    <div class="bg-pink-400 h-full rounded-full transition-all duration-500" :style="'width: ' + getTodayCompletionRate() + '%'"></div>
+                                    <div class="bg-pink-400 h-full rounded-full" :style="'width: ' + getTodayCompletionRate() + '%'"></div>
                                 </div>
                             </div>
+                            <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600 font-medium">📆 本周待办完成率</span>
+                                    <span class="font-bold text-purple-600" x-text="getWeeklyCompletionRate() + '%'"></span>
+                                </div>
+                                <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-purple-400 h-full rounded-full" :style="'width: ' + getWeeklyCompletionRate() + '%'"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
+                        <h3 class="font-bold text-gray-800 text-base">📁 维度三：清单项目进度对比</h3>
+                        <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
+                            <template x-for="list in lists" :key="list.id">
+                                <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 space-y-1.5">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-2 truncate">
+                                            <span class="w-3 h-3 rounded-full flex-shrink-0" :style="'background-color: ' + (list.color || '#FF8FAB')"></span>
+                                            <span class="text-sm font-bold text-gray-800 truncate" x-text="list.name"></span>
+                                        </div>
+                                        <span class="text-xs px-2 py-0.5 rounded-md bg-white font-bold text-gray-700" x-text="'总完成率 ' + getListRates(list.id).total + '%'"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
+                        <h3 class="font-bold text-gray-800 text-base">🏷️ 维度四：标签资产完成率</h3>
+                        <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
+                            <template x-for="tag in allTags" :key="tag">
+                                <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 space-y-1.5">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-bold text-pink-600" x-text="'#' + tag"></span>
+                                        <span class="text-xs px-2 py-0.5 rounded-md bg-white font-bold text-gray-700" x-text="'总完成率 ' + getTagRates(tag).total + '%'"></span>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 🗑️ 待办垃圾桶视图 -->
+            <!-- 🗑️ 垃圾桶视图 -->
             <div x-show="currentView === 'trash'" class="max-w-4xl mx-auto space-y-6">
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex items-center justify-between">
                     <div>
@@ -470,7 +461,6 @@
                     </div>
                     <button x-show="trashTasks.length > 0" @click="clearAllTrash()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-4 py-2 rounded-xl text-xs font-semibold">彻底清空垃圾桶</button>
                 </div>
-
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-3">
                     <template x-for="task in trashTasks" :key="task.id">
                         <div class="flex items-center justify-between p-3.5 rounded-2xl border border-gray-100 bg-gray-50/50">
@@ -488,7 +478,7 @@
                 </div>
             </div>
 
-            <!-- 📁 独立清单视图 -->
+            <!-- 📁 独立清单专属视图 (已恢复日期、无日期和标签展示) -->
             <template x-if="currentView.startsWith('list_')">
                 <div class="max-w-4xl mx-auto space-y-6">
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex items-center justify-between">
@@ -502,10 +492,17 @@
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-3">
                         <template x-for="task in tasks.filter(t => t.listId === getActiveListId())" :key="task.id">
                             <div class="group flex items-center justify-between p-3.5 rounded-2xl border border-gray-100 hover:bg-pink-50/20 transition-all">
-                                <div class="flex items-center space-x-3">
+                                <div class="flex items-center space-x-3 flex-1 min-w-0">
                                     <input type="checkbox" :checked="task.completed" @change="toggleTaskComplete(task.id)" class="w-5 h-5 rounded-lg text-pink-500">
-                                    <div>
-                                        <p class="text-sm font-medium" :class="task.completed ? 'line-through text-gray-400' : 'text-gray-800'" x-text="task.title"></p>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium truncate" :class="task.completed ? 'line-through text-gray-400' : 'text-gray-800'" x-text="task.title"></p>
+                                        <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                            <span x-show="task.dueDate" class="text-xs px-2 py-0.5 rounded-md bg-gray-100 text-gray-600" x-text="task.dueDate"></span>
+                                            <span x-show="!task.dueDate" class="text-xs px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 border border-amber-100">无日期</span>
+                                            <template x-for="tag in (task.tags || [])" :key="tag">
+                                                <span class="text-xs px-2 py-0.5 rounded-md bg-pink-100 text-pink-600 font-medium" x-text="'#' + tag"></span>
+                                            </template>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -514,53 +511,49 @@
                                 </div>
                             </div>
                         </template>
+                        <div x-show="tasks.filter(t => t.listId === getActiveListId()).length === 0" class="text-center py-12 text-gray-400 text-sm">当前清单暂无任务 ✨</div>
                     </div>
                 </div>
             </template>
 
-            <!-- 🏷️ 独立标签视图 -->
+            <!-- 🏷️ 独立标签专属视图 -->
             <template x-if="currentView.startsWith('tag_')">
                 <div class="max-w-4xl mx-auto space-y-6">
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex items-center justify-between">
                         <h2 class="text-lg font-bold text-pink-600" x-text="'#' + getActiveTagName()"></h2>
                     </div>
-
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-3">
                         <template x-for="task in tasks.filter(t => (t.tags || []).includes(getActiveTagName()))" :key="task.id">
                             <div class="group flex items-center justify-between p-3.5 rounded-2xl border border-gray-100 hover:bg-pink-50/20 transition-all">
                                 <div class="flex items-center space-x-3">
                                     <input type="checkbox" :checked="task.completed" @change="toggleTaskComplete(task.id)" class="w-5 h-5 rounded-lg text-pink-500">
-                                    <p class="text-sm font-medium" :class="task.completed ? 'line-through text-gray-400' : 'text-gray-800'" x-text="task.title"></p>
+                                    <div>
+                                        <p class="text-sm font-medium" :class="task.completed ? 'line-through text-gray-400' : 'text-gray-800'" x-text="task.title"></p>
+                                        <span class="text-xs px-2 py-0.5 rounded font-medium text-white inline-block mt-1" :style="'background-color: ' + getListColor(task.listId)" x-text="getListName(task.listId)"></span>
+                                    </div>
                                 </div>
                             </div>
                         </template>
                     </div>
                 </div>
             </template>
-
         </div>
     </main>
 
-    <!-- ======================= 弹窗组件群 ======================= -->
-
-    <!-- 1. 新建/编辑任务弹窗 (已集成已有标签快捷点选面板) -->
-    <div x-show="openTaskModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+    <!-- 弹窗：新建/编辑任务 (含 Emoji 标签点选) -->
+    <div x-show="openTaskModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
         <div @click.away="openTaskModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 border border-pink-100">
             <h3 class="font-bold text-gray-800 text-lg" x-text="editingTask.id ? '编辑待办任务' : '新建待办任务'"></h3>
-            
             <div class="space-y-3">
                 <div>
                     <label class="text-xs font-semibold text-gray-500 mb-1 block">任务内容</label>
                     <input type="text" x-model="editingTask.title" placeholder="输入待办事项..." class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm">
                 </div>
-
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs font-semibold text-gray-500 mb-1 block">所属清单</label>
                         <select x-model="editingTask.listId" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm">
-                            <template x-for="list in lists" :key="list.id">
-                                <option :value="list.id" x-text="list.name"></option>
-                            </template>
+                            <template x-for="list in lists" :key="list.id"><option :value="list.id" x-text="list.name"></option></template>
                         </select>
                     </div>
                     <div>
@@ -571,136 +564,87 @@
                         <input type="date" x-model="editingTask.dueDate" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm">
                     </div>
                 </div>
-
-                <!-- 🏷️ 核心新增：已有标签快捷可选面板 -->
                 <div>
                     <label class="text-xs font-semibold text-gray-500 mb-1.5 block">选择已有标签 (点击快捷勾选)</label>
                     <div class="flex flex-wrap gap-1.5 mb-2 max-h-32 overflow-y-auto p-1 bg-pink-50/30 rounded-xl border border-pink-100">
                         <template x-for="tag in allTags" :key="tag">
                             <button type="button"
                                     @click="toggleTaskTagSelection(tag)"
-                                    :class="isTaskTagSelected(tag) ? 'bg-pink-500 text-white font-bold border-transparent shadow-2xs' : 'bg-white text-pink-600 border-pink-100 hover:bg-pink-100'"
+                                    :class="isTaskTagSelected(tag) ? 'bg-pink-500 text-white font-bold border-transparent' : 'bg-white text-pink-600 border-pink-100 hover:bg-pink-100'"
                                     class="text-xs px-2.5 py-1 rounded-lg border transition-all"
                                     x-text="'#' + tag"></button>
                         </template>
-                        <div x-show="allTags.length === 0" class="text-[10px] text-gray-400 py-1 px-2">暂无可用标签</div>
                     </div>
                     <input type="text" x-model="editingTask.tagsInput" placeholder="或手动输入新标签(逗号隔开)" class="w-full px-4 py-2 rounded-xl border border-gray-200 text-xs">
                 </div>
             </div>
-
             <div class="flex justify-end space-x-2 pt-2">
-                <button @click="openTaskModal = false" class="px-4 py-2 rounded-xl text-gray-500 hover:bg-gray-100 text-sm font-medium">取消</button>
-                <button @click="saveTask()" class="px-5 py-2 rounded-xl bg-pink-500 hover:bg-pink-600 text-white text-sm font-semibold shadow-md">保存任务</button>
+                <button @click="openTaskModal = false" class="px-4 py-2 rounded-xl text-gray-500 text-sm">取消</button>
+                <button @click="saveTask()" class="px-5 py-2 rounded-xl bg-pink-500 text-white text-sm font-semibold shadow-md">保存任务</button>
             </div>
         </div>
     </div>
 
-    <!-- 2. 新建/编辑清单或文件夹弹窗 -->
+    <!-- 其它标准弹窗 -->
     <div x-show="openFolderListModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-        <div @click.away="openFolderListModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 border border-pink-100">
+        <div @click.away="openFolderListModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
             <h3 class="font-bold text-gray-800 text-lg" x-text="folderListModalTitle"></h3>
-            <div class="space-y-3">
-                <div x-show="folderListModalType === 'list'">
-                    <label class="text-xs font-semibold text-gray-500 mb-1 block">选择父文件夹 (可选)</label>
-                    <select x-model="editingFolderList.folderId" class="w-full px-3 py-2.5 rounded-xl border text-sm">
-                        <option value="">(根目录)</option>
-                        <template x-for="f in folders" :key="f.id"><option :value="f.id" x-text="f.name"></option></template>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-xs font-semibold text-gray-500 mb-1 block">名称</label>
-                    <input type="text" x-model="editingFolderList.name" placeholder="请输入名称..." class="w-full px-4 py-2.5 rounded-xl border text-sm">
-                </div>
-            </div>
-            <div class="flex justify-end space-x-2 pt-2">
-                <button @click="openFolderListModal = false" class="px-4 py-2 text-gray-500 text-sm">取消</button>
-                <button @click="saveFolderOrList()" class="px-5 py-2 bg-pink-500 text-white rounded-xl text-sm font-semibold">确认</button>
-            </div>
+            <input type="text" x-model="editingFolderList.name" placeholder="请输入名称..." class="w-full px-4 py-2.5 rounded-xl border text-sm">
+            <div class="flex justify-end space-x-2"><button @click="openFolderListModal = false" class="px-4 py-2 text-gray-500 text-sm">取消</button><button @click="saveFolderOrList()" class="px-5 py-2 bg-pink-500 text-white rounded-xl text-sm font-semibold">确认</button></div>
         </div>
     </div>
 
-    <!-- 3. 安全防误删确认弹窗 -->
     <div x-show="openDeleteConfirmModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
         <div @click.away="openDeleteConfirmModal = false" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4">
             <h3 class="font-bold text-gray-800 text-lg" x-text="deleteConfirmTitle"></h3>
-            <p class="text-xs text-gray-500 leading-relaxed" x-text="deleteConfirmMessage"></p>
-            <div class="flex justify-end space-x-2 pt-2">
-                <button @click="openDeleteConfirmModal = false" class="px-4 py-2 text-gray-500 text-sm">取消</button>
-                <button @click="executeConfirmedDelete()" class="px-5 py-2 bg-red-500 text-white rounded-xl text-sm font-semibold">确认删除</button>
-            </div>
+            <p class="text-xs text-gray-500" x-text="deleteConfirmMessage"></p>
+            <div class="flex justify-end space-x-2"><button @click="openDeleteConfirmModal = false" class="px-4 py-2 text-gray-500 text-sm">取消</button><button @click="executeConfirmedDelete()" class="px-5 py-2 bg-red-500 text-white rounded-xl text-sm font-semibold">确认删除</button></div>
         </div>
     </div>
 
-    <!-- 4. 新建/编辑习惯弹窗 -->
     <div x-show="openHabitModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
         <div @click.away="openHabitModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
             <h3 class="font-bold text-gray-800 text-lg" x-text="editingHabit.id ? '编辑习惯' : '新建习惯'"></h3>
-            <div class="space-y-3">
-                <div class="grid grid-cols-4 gap-2">
-                    <input type="text" x-model="editingHabit.emoji" class="text-center rounded-xl border text-lg py-2">
-                    <input type="text" x-model="editingHabit.name" placeholder="习惯名称" class="col-span-3 px-4 py-2.5 rounded-xl border text-sm">
-                </div>
-                <input type="number" x-model="editingHabit.target" min="1" class="w-full px-4 py-2.5 rounded-xl border text-sm" placeholder="每日目标次数">
-            </div>
-            <div class="flex justify-end space-x-2 pt-2">
-                <button @click="openHabitModal = false" class="px-4 py-2 text-gray-500 text-sm">取消</button>
-                <button @click="saveHabit()" class="px-5 py-2 bg-pink-500 text-white rounded-xl text-sm font-semibold">保存</button>
-            </div>
+            <input type="text" x-model="editingHabit.emoji" class="text-center rounded-xl border text-lg py-2 w-full">
+            <input type="text" x-model="editingHabit.name" placeholder="习惯名称" class="w-full px-4 py-2 rounded-xl border text-sm">
+            <div class="flex justify-end space-x-2"><button @click="openHabitModal = false" class="px-4 py-2 text-gray-500 text-sm">取消</button><button @click="saveHabit()" class="px-5 py-2 bg-pink-500 text-white rounded-xl text-sm font-semibold">保存</button></div>
         </div>
     </div>
 
-    <!-- 5. 个人卡片弹窗 -->
     <div x-show="openProfileModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
         <div @click.away="openProfileModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
             <h3 class="font-bold text-gray-800 text-lg">编辑个人名片</h3>
-            <input type="text" x-model="profile.avatar" class="w-full px-4 py-2 rounded-xl border text-center text-lg" placeholder="头像 Emoji">
+            <input type="text" x-model="profile.avatar" class="w-full px-4 py-2 rounded-xl border text-center text-lg">
             <input type="text" x-model="profile.name" class="w-full px-4 py-2 rounded-xl border text-sm" placeholder="昵称">
-            <input type="text" x-model="profile.bio" class="w-full px-4 py-2 rounded-xl border text-sm" placeholder="个性签名">
-            <div class="flex justify-end space-x-2 pt-2">
-                <button @click="openProfileModal = false" class="px-4 py-2 text-gray-500 text-sm">取消</button>
-                <button @click="saveProfile()" class="px-5 py-2 bg-pink-500 text-white rounded-xl text-sm font-semibold">保存</button>
-            </div>
+            <div class="flex justify-end space-x-2"><button @click="openProfileModal = false" class="px-4 py-2 text-gray-500 text-sm">取消</button><button @click="saveProfile()" class="px-5 py-2 bg-pink-500 text-white rounded-xl text-sm font-semibold">保存</button></div>
         </div>
     </div>
 
-    <!-- 6. 每日小部件显隐配置弹窗 -->
     <div x-show="openWidgetConfig" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
         <div @click.away="openWidgetConfig = false" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4">
             <h3 class="font-bold text-gray-800 text-lg">每日小部件显隐设置</h3>
-            <label class="flex items-center justify-between p-3 rounded-2xl bg-gray-50 cursor-pointer">
-                <span class="text-sm font-medium text-gray-700">⚡ 今日习惯打卡部件</span>
-                <input type="checkbox" x-model="widgets.habit" class="w-5 h-5 rounded text-pink-500">
-            </label>
-            <label class="flex items-center justify-between p-3 rounded-2xl bg-gray-50 cursor-pointer">
-                <span class="text-sm font-medium text-gray-700">📅 今日日程概览部件</span>
-                <input type="checkbox" x-model="widgets.calendar" class="w-5 h-5 rounded text-pink-500">
-            </label>
-            <div class="flex justify-end pt-2">
-                <button @click="openWidgetConfig = false" class="px-5 py-2 rounded-xl bg-pink-500 text-white text-sm font-semibold">完成</button>
-            </div>
+            <label class="flex items-center justify-between p-3 rounded-2xl bg-gray-50"><span class="text-sm">⚡ 习惯打卡</span><input type="checkbox" x-model="widgets.habit" class="rounded text-pink-500"></label>
+            <label class="flex items-center justify-between p-3 rounded-2xl bg-gray-50"><span class="text-sm">📅 日程概览</span><input type="checkbox" x-model="widgets.calendar" class="rounded text-pink-500"></label>
+            <div class="flex justify-end"><button @click="openWidgetConfig = false" class="px-5 py-2 bg-pink-500 text-white rounded-xl text-sm">完成</button></div>
         </div>
     </div>
 
-    <!-- 7. 标签管理弹窗 -->
     <div x-show="openTagManagerModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
         <div @click.away="openTagManagerModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
             <h3 class="font-bold text-gray-800 text-lg">标签资产管理</h3>
             <div class="flex flex-wrap gap-2 max-h-60 overflow-y-auto p-2">
                 <template x-for="tag in allTags" :key="tag">
-                    <div class="flex items-center space-x-2 bg-pink-50 px-3 py-1.5 rounded-xl border border-pink-100 text-sm">
+                    <div class="flex items-center space-x-2 bg-pink-50 px-3 py-1.5 rounded-xl border text-sm">
                         <span class="text-pink-600 font-medium" x-text="'#' + tag"></span>
-                        <button @click="deleteTag(tag)" class="text-gray-400 hover:text-red-500 font-bold ml-1 text-xs">×</button>
+                        <button @click="deleteTag(tag)" class="text-gray-400 hover:text-red-500 font-bold ml-1">×</button>
                     </div>
                 </template>
             </div>
-            <div class="flex justify-end pt-2">
-                <button @click="openTagManagerModal = false" class="px-5 py-2 rounded-xl bg-pink-500 text-white text-sm font-semibold">关闭</button>
-            </div>
+            <div class="flex justify-end"><button @click="openTagManagerModal = false" class="px-5 py-2 bg-pink-500 text-white rounded-xl text-sm">关闭</button></div>
         </div>
     </div>
 
-    <!-- ======================= 业务逻辑脚本 ======================= -->
+    <!-- 业务脚本 -->
     <script>
         function universeApp() {
             return {
@@ -805,7 +749,6 @@
                 getActiveListColor() { return this.getListColor(this.getActiveListId()); },
                 getActiveTagName() { return this.currentView.startsWith('tag_') ? this.currentView.replace('tag_', '') : ''; },
 
-                // 标签快捷点选交互逻辑
                 isTaskTagSelected(tag) {
                     let current = this.editingTask.tagsInput ? this.editingTask.tagsInput.split(/[,，\s]+/).map(s => s.trim().replace(/^#/, '')).filter(Boolean) : [];
                     return current.includes(tag);
@@ -1047,9 +990,30 @@
                     let prefix = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
                     return Object.keys(this.habitLogs).filter(d => d.startsWith(prefix) && this.habitLogs[d]?.[habitId] > 0).length;
                 },
+                getHabitMonthlyPercent(habitId) {
+                    let now = new Date(), totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                    return Math.round((this.getHabitMonthlyDoneDays(habitId) / totalDays) * 100);
+                },
                 getTodayCompletionRate() {
                     let t = this.getTodayDateStr(), list = this.tasks.filter(x => x.dueDate === t);
                     return list.length === 0 ? 100 : Math.round((list.filter(x => x.completed).length / list.length) * 100);
+                },
+                getWeeklyCompletionRate() {
+                    let now = new Date(), dayOfWeek = now.getDay() || 7;
+                    let monday = new Date(now); monday.setDate(now.getDate() - dayOfWeek + 1); monday.setHours(0,0,0,0);
+                    let sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23,59,59,999);
+                    let weekTasks = this.tasks.filter(t => { if (!t.dueDate) return false; let d = new Date(t.dueDate); return d >= monday && d <= sunday; });
+                    return weekTasks.length === 0 ? 0 : Math.round((weekTasks.filter(t => t.completed).length / weekTasks.length) * 100);
+                },
+                getListRates(listId) {
+                    let listTasks = this.tasks.filter(t => t.listId === listId);
+                    let total = listTasks.length === 0 ? 0 : Math.round((listTasks.filter(t => t.completed).length / listTasks.length) * 100);
+                    return { total };
+                },
+                getTagRates(tag) {
+                    let tagTasks = this.tasks.filter(t => (t.tags || []).includes(tag));
+                    let total = tagTasks.length === 0 ? 0 : Math.round((tagTasks.filter(t => t.completed).length / tagTasks.length) * 100);
+                    return { total };
                 },
 
                 openTagManager() { this.openTagManagerModal = true; },
