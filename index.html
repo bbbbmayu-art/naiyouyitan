@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>宇宙中心 - 生产力与灵感系统</title>
+    <!-- PWA Manifest 支持 -->
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
+        %22name%22: %22宇宙中心%22,
+        %22short_name%22: %22宇宙中心%22,
+        %22start_url%22: %22./%22,
+        %22display%22: %22standalone%22,
+        %22background_color%22: %22%23f8fafc%22,
+        %22theme_color%22: %22%234f46e5%22,
+        %22icons%22: [{%22src%22: %22https://cdn-icons-png.flaticon.com/512/3233/3233483.png%22, %22sizes%22: %22512x512%22, %22type%22: %22image/png%22}]
+    }">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React & ReactDOM -->
@@ -38,12 +48,13 @@
 
         function App() {
             const [currentView, setCurrentView] = useState('inbox');
+            const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
             
-            // 基础状态与本地存储
+            // 基础数据状态
             const [todos, setTodos] = useState(() => {
                 const saved = localStorage.getItem('universe_todos');
                 return saved ? JSON.parse(saved) : [
-                    { id: 1, title: '欢迎来到宇宙中心 🚀', completed: false, date: new Date().toISOString().split('T')[0], priority: 'high', folderId: null, tags: ['💡 灵感'] }
+                    { id: 1, title: '欢迎来到宇宙中心 🚀', completed: false, date: new Date().toISOString().split('T')[0], folderId: null, tags: ['💡 灵感'] }
                 ];
             });
 
@@ -68,6 +79,13 @@
                 ];
             });
 
+            // 标签列表
+            const [tags, setTags] = useState(() => {
+                const saved = localStorage.getItem('universe_tags');
+                return saved ? JSON.parse(saved) : ['💡 灵感', '🔥 重要', '🏠 生活', '💻 工作', '📚 学习'];
+            });
+
+            // 统一垃圾桶：存放待办、习惯、标签、文件夹、笔记等
             const [trashBin, setTrashBin] = useState(() => {
                 const saved = localStorage.getItem('universe_trash');
                 return saved ? JSON.parse(saved) : [];
@@ -75,16 +93,48 @@
 
             // 弹窗状态
             const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
-            const [currentTodo, setCurrentTodo] = useState({ title: '', date: new Date().toISOString().split('T')[0], priority: 'medium', folderId: null, tags: [] });
+            const [currentTodo, setCurrentTodo] = useState({ title: '', date: new Date().toISOString().split('T')[0], folderId: null, tags: [] });
 
-            // 持久化同步
+            // 本地存储同步
             useEffect(() => { localStorage.setItem('universe_todos', JSON.stringify(todos)); }, [todos]);
             useEffect(() => { localStorage.setItem('universe_folders', JSON.stringify(folders)); }, [folders]);
             useEffect(() => { localStorage.setItem('universe_habits', JSON.stringify(habits)); }, [habits]);
             useEffect(() => { localStorage.setItem('universe_notes', JSON.stringify(notes)); }, [notes]);
+            useEffect(() => { localStorage.setItem('universe_tags', JSON.stringify(tags)); }, [tags]);
             useEffect(() => { localStorage.setItem('universe_trash', JSON.stringify(trashBin)); }, [trashBin]);
 
-            // 习惯打卡自动日期校验
+            // 统一移入垃圾桶方法
+            const moveToTrash = (type, item) => {
+                const trashItem = {
+                    id: Date.now() + Math.random(),
+                    type,
+                    data: item,
+                    deletedAt: new Date().toLocaleString()
+                };
+                setTrashBin(prev => [trashItem, ...prev]);
+
+                if (type === 'todo') setTodos(prev => prev.filter(t => t.id !== item.id));
+                if (type === 'habit') setHabits(prev => prev.filter(h => h.id !== item.id));
+                if (type === 'note') setNotes(prev => prev.filter(n => n.id !== item.id));
+                if (type === 'tag') setTags(prev => prev.filter(t => t !== item));
+                if (type === 'folder') {
+                    setFolders(prev => prev.filter(f => f.id !== item.id));
+                    setTodos(prev => prev.map(t => t.folderId === item.id ? {...t, folderId: null} : t));
+                }
+            };
+
+            // 从垃圾桶恢复
+            const restoreFromTrash = (trashItem) => {
+                if (trashItem.type === 'todo') setTodos(prev => [trashItem.data, ...prev]);
+                if (trashItem.type === 'habit') setHabits(prev => [trashItem.data, ...prev]);
+                if (trashItem.type === 'note') setNotes(prev => [trashItem.data, ...prev]);
+                if (trashItem.type === 'tag') setTags(prev => [...prev, trashItem.data]);
+                if (trashItem.type === 'folder') setFolders(prev => [...prev, trashItem.data]);
+
+                setTrashBin(prev => prev.filter(t => t.id !== trashItem.id));
+            };
+
+            // 习惯打卡每日自动刷新校验
             const todayStr = new Date().toISOString().split('T')[0];
             const toggleHabitLog = (habitId) => {
                 setHabits(prev => prev.map(h => {
@@ -125,8 +175,41 @@
                                     <span>灵感笔记</span>
                                 </button>
                             </nav>
+
+                            {/* 清单文件夹层级（字号调大，视觉层级明显大于普通清单） */}
+                            <div className="mt-8">
+                                <div className="px-3 mb-2 flex items-center justify-between">
+                                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">清单文件夹</span>
+                                    <button onClick={() => {
+                                        const name = prompt("请输入文件夹名称：");
+                                        if (name) setFolders(prev => [...prev, { id: 'f_' + Date.now(), name, icon: 'folder' }]);
+                                    }} className="text-slate-400 hover:text-slate-600 text-lg font-bold">+</button>
+                                </div>
+                                <div className="space-y-3">
+                                    {folders.map(folder => (
+                                        <div key={folder.id} className="space-y-1">
+                                            {/* 文件夹标题放大并加粗 (text-base font-bold) */}
+                                            <div className="flex items-center justify-between px-3 py-1.5 rounded-lg text-base font-bold text-slate-900 hover:bg-slate-100">
+                                                <div className="flex items-center space-x-2">
+                                                    <Icon name={folder.icon || 'folder'} className="w-4 h-4 text-indigo-500" />
+                                                    <span>{folder.name}</span>
+                                                </div>
+                                                <button onClick={() => moveToTrash('folder', folder)} className="text-slate-300 hover:text-red-500 text-xs">×</button>
+                                            </div>
+                                            <div className="pl-6 space-y-1">
+                                                {todos.filter(t => t.folderId === folder.id).map(todo => (
+                                                    <div key={todo.id} className="text-sm text-slate-600 py-0.5 truncate flex items-center justify-between">
+                                                        <span>• {todo.title}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
 
+                        {/* 底部垃圾桶入口 */}
                         <div className="p-4 border-t border-slate-200">
                             <button onClick={() => setCurrentView('trash')} className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium ${currentView === 'trash' ? 'bg-red-50 text-red-600' : 'text-slate-500 hover:bg-slate-100'}`}>
                                 <Icon name="trash-2" />
@@ -137,6 +220,7 @@
 
                     {/* 主内容区 */}
                     <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white p-8">
+                        {/* 收集箱视图 */}
                         {currentView === 'inbox' && (
                             <div>
                                 <div className="flex justify-between items-center mb-6">
@@ -149,11 +233,11 @@
                                             <div className="flex items-center space-x-3">
                                                 <input type="checkbox" checked={todo.completed} onChange={() => setTodos(todos.map(t => t.id === todo.id ? {...t, completed: !t.completed} : t))} className="w-4 h-4 text-indigo-600 rounded" />
                                                 <span className={`${todo.completed ? 'line-through text-slate-400' : 'text-slate-800'}`}>{todo.title}</span>
+                                                {todo.tags?.map((t, idx) => (
+                                                    <span key={idx} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{t}</span>
+                                                ))}
                                             </div>
-                                            <button onClick={() => {
-                                                setTrashBin(prev => [{ id: Date.now(), type: 'todo', data: todo, deletedAt: new Date().toLocaleString() }, ...prev]);
-                                                setTodos(prev => prev.filter(t => t.id !== todo.id));
-                                            }} className="text-slate-400 hover:text-red-500">
+                                            <button onClick={() => moveToTrash('todo', todo)} className="text-slate-400 hover:text-red-500">
                                                 <Icon name="trash-2" className="w-4 h-4" />
                                             </button>
                                         </div>
@@ -162,22 +246,69 @@
                             </div>
                         )}
 
+                        {/* 日历视图（支持滚动及勾选已完成状态的划线灰显样式） */}
                         {currentView === 'calendar' && (
-                            <div>
+                            <div className="h-full overflow-y-auto">
                                 <h2 className="text-2xl font-bold mb-6">日历视图</h2>
-                                <p className="text-slate-500">日历视图内容正常加载中...</p>
+                                <div className="mb-4 flex items-center space-x-4">
+                                    <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="border rounded px-3 py-1.5 text-sm" />
+                                    <span className="text-sm text-slate-500">选定日期的任务：</span>
+                                </div>
+                                <div className="space-y-2">
+                                    {todos.filter(t => t.date === selectedDate).length === 0 ? (
+                                        <p className="text-slate-400 py-4">这天没有安排待办事项。</p>
+                                    ) : (
+                                        todos.filter(t => t.date === selectedDate).map(todo => (
+                                            <div key={todo.id} className={`flex items-center justify-between p-3 border rounded-lg ${todo.completed ? 'bg-slate-50 border-slate-200' : 'bg-white border-slate-100'}`}>
+                                                <div className="flex items-center space-x-3">
+                                                    <input type="checkbox" checked={todo.completed} onChange={() => setTodos(todos.map(t => t.id === todo.id ? {...t, completed: !t.completed} : t))} className="w-4 h-4 text-indigo-600 rounded" />
+                                                    <span className={`${todo.completed ? 'line-through text-slate-400' : 'text-slate-800'}`}>{todo.title}</span>
+                                                </div>
+                                                <button onClick={() => moveToTrash('todo', todo)} className="text-slate-400 hover:text-red-500">
+                                                    <Icon name="trash-2" className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             </div>
                         )}
 
+                        {/* 习惯打卡视图（支持每日自动刷新与删除进垃圾桶） */}
                         {currentView === 'habits' && (
                             <div>
                                 <h2 className="text-2xl font-bold mb-6">习惯打卡</h2>
                                 <div className="space-y-3">
                                     {habits.map(habit => (
-                                        <div key={habit.id} className="flex items-center justify-between p-4 border rounded-lg">
-                                            <span>{habit.name}</span>
-                                            <button onClick={() => toggleHabitLog(habit.id)} className={`px-4 py-1.5 rounded text-sm ${habit.logs[todayStr] ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                                                {habit.logs[todayStr] ? '已完成 ✓' : '今日打卡'}
+                                        <div key={habit.id} className="flex items-center justify-between p-4 border rounded-lg bg-white">
+                                            <span className="font-medium">{habit.name}</span>
+                                            <div className="flex items-center space-x-3">
+                                                <button onClick={() => toggleHabitLog(habit.id)} className={`px-4 py-1.5 rounded text-sm ${habit.logs[todayStr] ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                                                    {habit.logs[todayStr] ? '已完成 ✓' : '今日打卡'}
+                                                </button>
+                                                <button onClick={() => moveToTrash('habit', habit)} className="text-slate-400 hover:text-red-500">
+                                                    <Icon name="trash-2" className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 灵感笔记视图 */}
+                        {currentView === 'notes' && (
+                            <div>
+                                <h2 className="text-2xl font-bold mb-6">灵感笔记</h2>
+                                <div className="space-y-3">
+                                    {notes.map(note => (
+                                        <div key={note.id} className="p-4 border rounded-lg flex justify-between items-start bg-white">
+                                            <div>
+                                                <h3 className="font-bold text-lg mb-1">{note.title}</h3>
+                                                <p className="text-slate-600 text-sm">{note.content}</p>
+                                            </div>
+                                            <button onClick={() => moveToTrash('note', note)} className="text-slate-400 hover:text-red-500">
+                                                <Icon name="trash-2" className="w-4 h-4" />
                                             </button>
                                         </div>
                                     ))}
@@ -185,34 +316,44 @@
                             </div>
                         )}
 
-                        {currentView === 'notes' && (
-                            <div>
-                                <h2 className="text-2xl font-bold mb-6">灵感笔记</h2>
-                                <div className="space-y-3">
-                                    {notes.map(note => (
-                                        <div key={note.id} className="p-4 border rounded-lg">
-                                            <h3 className="font-bold text-lg mb-1">{note.title}</h3>
-                                            <p className="text-slate-600 text-sm">{note.content}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
+                        {/* 统一回收站视图 */}
                         {currentView === 'trash' && (
                             <div>
-                                <h2 className="text-2xl font-bold text-red-600 mb-6">回收站</h2>
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-2xl font-bold text-red-600">回收站</h2>
+                                    {trashBin.length > 0 && (
+                                        <button onClick={() => setTrashBin([])} className="text-xs text-slate-500 hover:text-red-600">清空回收站</button>
+                                    )}
+                                </div>
                                 <div className="space-y-3">
                                     {trashBin.length === 0 ? (
                                         <p className="text-slate-400 text-center py-12">回收站是空的</p>
                                     ) : (
                                         trashBin.map(item => (
-                                            <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg bg-slate-50">
-                                                <span>{item.data.title || item.data.name}</span>
-                                                <button onClick={() => {
-                                                    setTodos(prev => [item.data, ...prev]);
-                                                    setTrashBin(prev => prev.filter(t => t.id !== item.id));
-                                                }} className="px-3 py-1 bg-white border rounded text-xs">恢复</button>
+                                            <div key={item.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg bg-slate-50">
+                                                <div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <span className="text-xs uppercase bg-slate-200 px-2 py-0.5 rounded text-slate-700 font-semibold">
+                                                            {item.type === 'todo' && '待办'}
+                                                            {item.type === 'habit' && '习惯打卡'}
+                                                            {item.type === 'tag' && '标签'}
+                                                            {item.type === 'folder' && '文件夹'}
+                                                            {item.type === 'note' && '笔记'}
+                                                        </span>
+                                                        <span className="font-medium text-slate-800">
+                                                            {item.type === 'todo' && item.data.title}
+                                                            {item.type === 'habit' && item.data.name}
+                                                            {item.type === 'note' && item.data.title}
+                                                            {item.type === 'tag' && item.data}
+                                                            {item.type === 'folder' && item.data.name}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-xs text-slate-400 mt-1 block">删除于: {item.deletedAt}</span>
+                                                </div>
+                                                <div className="flex space-x-2">
+                                                    <button onClick={() => restoreFromTrash(item)} className="px-3 py-1 bg-white border border-slate-300 rounded text-xs text-slate-700 hover:bg-slate-100">恢复</button>
+                                                    <button onClick={() => setTrashBin(prev => prev.filter(t => t.id !== item.id))} className="px-3 py-1 bg-red-50 text-red-600 rounded text-xs hover:bg-red-100">彻底删除</button>
+                                                </div>
                                             </div>
                                         ))
                                     )}
@@ -221,7 +362,7 @@
                         )}
                     </main>
 
-                    {/* 新增待办弹窗 */}
+                    {/* 新增待办弹窗（附带 Emoji 标签可选面板） */}
                     {isTodoModalOpen && (
                         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
                             <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
@@ -233,6 +374,50 @@
                                     onChange={e => setCurrentTodo({...currentTodo, title: e.target.value})} 
                                     className="w-full border border-slate-200 rounded-lg p-2.5 mb-4 text-sm focus:outline-none focus:border-indigo-500" 
                                 />
+
+                                <div className="mb-6">
+                                    <label className="text-xs font-semibold text-slate-500 block mb-2">选择已有标签 (Emoji)</label>
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {tags.map((tag, idx) => {
+                                            const isSelected = currentTodo.tags.includes(tag);
+                                            return (
+                                                <div key={idx} className="flex items-center">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newTags = isSelected 
+                                                                ? currentTodo.tags.filter(t => t !== tag)
+                                                                : [...currentTodo.tags, tag];
+                                                            setCurrentTodo({...currentTodo, tags: newTags});
+                                                        }}
+                                                        className={`px-3 py-1 rounded-l-full text-xs border transition ${isSelected ? 'bg-indigo-50 border-indigo-500 text-indigo-700 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'}`}
+                                                    >
+                                                        {tag}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        title="将此标签移入垃圾桶"
+                                                        onClick={() => moveToTrash('tag', tag)}
+                                                        className="px-1.5 py-1 rounded-r-full text-xs border border-l-0 border-slate-200 bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => {
+                                            const newTag = prompt("请输入新的 Emoji 标签 (例如: 💡 灵感):");
+                                            if (newTag && !tags.includes(newTag)) setTags(prev => [...prev, newTag]);
+                                        }}
+                                        className="text-xs text-indigo-600 hover:underline"
+                                    >
+                                        + 添加新标签
+                                    </button>
+                                </div>
+
                                 <div className="flex justify-end space-x-2">
                                     <button onClick={() => setIsTodoModalOpen(false)} className="px-4 py-2 border rounded-lg text-sm text-slate-600 hover:bg-slate-100">取消</button>
                                     <button onClick={() => {
@@ -241,10 +426,11 @@
                                             id: Date.now(),
                                             title: currentTodo.title,
                                             completed: false,
-                                            date: new Date().toISOString().split('T')[0],
-                                            tags: []
+                                            date: currentTodo.date || new Date().toISOString().split('T')[0],
+                                            folderId: currentTodo.folderId,
+                                            tags: currentTodo.tags
                                         }, ...prev]);
-                                        setCurrentTodo({ title: '', date: new Date().toISOString().split('T')[0], priority: 'medium', folderId: null, tags: [] });
+                                        setCurrentTodo({ title: '', date: new Date().toISOString().split('T')[0], folderId: null, tags: [] });
                                         setIsTodoModalOpen(false);
                                     }} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">确定</button>
                                 </div>
