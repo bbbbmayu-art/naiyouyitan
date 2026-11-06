@@ -174,7 +174,7 @@
         </div>
     </aside>
 
-    <!-- 主内容区 (完美支持平板滚动) -->
+    <!-- 主内容区 -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden bg-white">
         <header class="h-16 border-b border-gray-100 flex items-center justify-between px-4 md:px-8 bg-white/80 backdrop-blur-md z-30 flex-shrink-0">
             <div class="flex items-center space-x-3">
@@ -196,7 +196,7 @@
             
             <!-- ☀️ 每日待办视图 -->
             <div x-show="currentView === 'daily'" class="max-w-4xl mx-auto space-y-6">
-                <!-- 仅保留打卡小部件，删除了今日日程概览 -->
+                <!-- 习惯打卡小部件 -->
                 <div class="grid grid-cols-1 gap-4">
                     <div x-show="widgets.habit" class="bg-gradient-to-br from-pink-50 to-yellow-50 p-5 rounded-2xl border border-pink-100 shadow-sm">
                         <div class="flex items-center justify-between mb-3">
@@ -217,17 +217,19 @@
                 </div>
 
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
-                    <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-3 gap-3">
                         <div class="flex items-center space-x-3">
-                            <h3 class="font-bold text-gray-800">☀️ 每日待办清单</h3>
+                            <h3 class="font-bold text-gray-800">☀️ 每日待办</h3>
                             <span class="text-xs px-2 py-0.5 rounded-full bg-pink-100 text-pink-600 font-semibold" x-text="getFilteredTasks().length"></span>
                         </div>
+                        <!-- 优化后的隐藏已完成与筛选交互区 -->
                         <div class="flex items-center space-x-2 text-xs">
-                            <label class="flex items-center space-x-1 cursor-pointer select-none text-gray-600 bg-gray-50 px-2.5 py-1.5 rounded-xl border border-gray-200">
-                                <input type="checkbox" x-model="filterHideCompleted" class="rounded text-pink-500">
-                                <span>隐藏已完成</span>
-                            </label>
-                            <select x-model="filterDateType" class="bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-gray-600">
+                            <button @click="filterHideCompleted = !filterHideCompleted"
+                                    :class="filterHideCompleted ? 'bg-pink-500 text-white border-pink-500 shadow-2xs' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-pink-50'"
+                                    class="px-3 py-1.5 rounded-xl border font-medium transition-all flex items-center space-x-1 cursor-pointer">
+                                <span x-text="filterHideCompleted ? '👁️ 已藏完成' : '👁️ 隐藏已完成'"></span>
+                            </button>
+                            <select x-model="filterDateType" class="bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-gray-600 focus:outline-none">
                                 <option value="all">全部时间</option>
                                 <option value="today">今日到期</option>
                                 <option value="undated">无日期</option>
@@ -263,7 +265,7 @@
                 </div>
             </div>
 
-            <!-- 📅 日历视图 (平板滚动完美适配) -->
+            <!-- 📅 日历视图 -->
             <div x-show="currentView === 'calendar'" class="max-w-5xl mx-auto space-y-6 pb-12">
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-6">
                     <div class="flex items-center justify-between">
@@ -464,7 +466,7 @@
                 </div>
             </div>
 
-            <!-- 🗑️ 统一垃圾桶视图 (含待办、习惯、标签等所有删掉的内容) -->
+            <!-- 🗑️ 统一垃圾桶视图 -->
             <div x-show="currentView === 'trash'" class="max-w-4xl mx-auto space-y-6">
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex items-center justify-between">
                     <div>
@@ -493,7 +495,7 @@
                 </div>
             </div>
 
-            <!-- 📁 独立清单专属视图 (完美显示日期、无日期和标签) -->
+            <!-- 📁 独立清单专属视图 -->
             <template x-if="currentView.startsWith('list_')">
                 <div class="max-w-4xl mx-auto space-y-6">
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex items-center justify-between">
@@ -555,7 +557,7 @@
         </div>
     </main>
 
-    <!-- 弹窗：新建/编辑任务 (含 Emoji 标签点选) -->
+    <!-- 弹窗：新建/编辑任务 -->
     <div x-show="openTaskModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
         <div @click.away="openTaskModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 border border-pink-100">
             <h3 class="font-bold text-gray-800 text-lg" x-text="editingTask.id ? '编辑待办任务' : '新建待办任务'"></h3>
@@ -682,9 +684,9 @@
                 editingFolderList: { id: '', folderId: '', name: '', color: '#FF8FAB' },
 
                 tasks: [
-                    { id: 't1', title: '完成宇宙中心基础版 1.0 架构优化', listId: 'l1', dueDate: new Date().toISOString().split('T')[0], tags: ['💡 灵感', '工作'], completed: false }
+                    { id: 't1', title: '完成宇宙中心基础版 2.0 移动端优化', listId: 'l1', dueDate: new Date().toISOString().split('T')[0], tags: ['💡 灵感', '工作'], completed: false }
                 ],
-                trashItems: [], // 统一垃圾桶 (存放待办、习惯、标签等)
+                trashItems: [],
                 
                 openTaskModal: false,
                 editingTask: { id: '', title: '', listId: '', dueDate: '', tagsInput: '' },
@@ -725,7 +727,7 @@
                 },
 
                 getViewTitle() {
-                    if (this.currentView === 'daily') return '☀️ 每日待办系统';
+                    if (this.currentView === 'daily') return '☀️ 每日待办';
                     if (this.currentView === 'calendar') return '📅 滴答清单风格日历';
                     if (this.currentView === 'habits') return '⚡ 习惯打卡专属空间';
                     if (this.currentView === 'review') return '📊 四维生产力数据复盘';
@@ -826,7 +828,6 @@
                     if (t) { t.completed = !t.completed; this.saveToLocalStorage(); }
                 },
 
-                // 统一垃圾桶逻辑 (支持待办、习惯、标签)
                 moveToTrash(type, item) {
                     let now = new Date();
                     let timeStr = now.toISOString().split('T')[0] + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
@@ -843,9 +844,7 @@
                     }
                     this.saveToLocalStorage();
                 },
-                deleteTagToTrash(tag) {
-                    this.moveToTrash('tag', tag);
-                },
+                deleteTagToTrash(tag) { this.moveToTrash('tag', tag); },
                 deleteListToTrash(list) {
                     this.tasks = this.tasks.filter(t => t.listId !== list.id);
                     this.lists = this.lists.filter(l => l.id !== list.id);
@@ -858,11 +857,8 @@
                     this.saveToLocalStorage();
                 },
                 restoreFromTrash(item) {
-                    if (item.type === 'task') {
-                        this.tasks.push(item.originalData);
-                    } else if (item.type === 'habit') {
-                        this.habits.push(item.originalData);
-                    }
+                    if (item.type === 'task') this.tasks.push(item.originalData);
+                    else if (item.type === 'habit') this.habits.push(item.originalData);
                     this.trashItems = this.trashItems.filter(tr => tr.trashId !== item.trashId);
                     this.saveToLocalStorage();
                 },
@@ -994,7 +990,6 @@
                 selectCalendarDate(ds) { this.selectedCalendarDate = ds; },
                 getTasksForDate(ds) { return this.tasks.filter(t => t.dueDate === ds); },
 
-                // 四维复盘计算算法
                 getCurrentYearMonthStr() { let n = new Date(); return `${n.getFullYear()}年${n.getMonth() + 1}月`; },
                 getHabitMonthlyDoneDays(habitId) {
                     let prefix = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
