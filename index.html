@@ -120,12 +120,13 @@
 
                 <template x-for="(folder, fIndex) in folders" :key="folder.id">
                     <div class="mt-3 space-y-1">
-                        <div class="group flex items-center justify-between px-3 py-1.5 text-sm font-extrabold text-gray-700 bg-pink-100/60 rounded-lg">
+                        <!-- 视觉加粗且字号加大的文件夹标题 -->
+                        <div class="group flex items-center justify-between px-3 py-2 text-base font-extrabold text-gray-800 bg-pink-100/70 rounded-xl">
                             <div class="flex items-center space-x-2 truncate">
-                                <span class="w-3 h-3 rounded-full flex-shrink-0" :style="'background-color: ' + (folder.color || '#FFD1DC')"></span>
+                                <span class="w-3.5 h-3.5 rounded-full flex-shrink-0" :style="'background-color: ' + (folder.color || '#FFD1DC')"></span>
                                 <span class="truncate" x-text="folder.name"></span>
                             </div>
-                            <div class="hidden group-hover:flex items-center space-x-1 text-gray-400 font-normal text-xs">
+                            <div class="hidden group-hover:flex items-center space-x-1 text-gray-500 font-normal text-xs">
                                 <button @click.stop="moveFolder(fIndex, -1)" class="hover:text-pink-600 px-0.5">▲</button>
                                 <button @click.stop="moveFolder(fIndex, 1)" class="hover:text-pink-600 px-0.5">▼</button>
                                 <button @click="editListOrFolder(folder)" class="hover:text-pink-600 ml-1">✏️</button>
@@ -228,7 +229,7 @@
                             <h3 class="font-bold text-gray-800">☀️ 每日待办</h3>
                             <span class="text-xs px-2 py-0.5 rounded-full bg-pink-100 text-pink-600 font-semibold" x-text="getFilteredTasks().length"></span>
                         </div>
-                        <!-- 优化后的隐藏已完成与筛选交互区 -->
+                        <!-- 隐藏已完成胶囊开关与筛选交互区 -->
                         <div class="flex items-center space-x-2 text-xs">
                             <button @click="filterHideCompleted = !filterHideCompleted"
                                     :class="filterHideCompleted ? 'bg-pink-500 text-white border-pink-500 shadow-2xs' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-pink-50'"
@@ -497,19 +498,26 @@
                 </div>
             </div>
 
-            <!-- 📁 独立清单专属视图 -->
+            <!-- 📁 独立清单专属视图（已增加“隐藏已完成”开关） -->
             <template x-if="currentView.startsWith('list_')">
                 <div class="max-w-4xl mx-auto space-y-6">
-                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex items-center justify-between">
+                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div class="flex items-center space-x-3">
                             <span class="w-4 h-4 rounded-full" :style="'background-color: ' + getActiveListColor()"></span>
                             <h2 class="text-lg font-bold text-gray-800" x-text="getActiveListName()"></h2>
                         </div>
-                        <button @click="openTaskModalForCreateWithList(getActiveListId())" class="bg-pink-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md">+ 在此清单新建任务</button>
+                        <div class="flex items-center space-x-2">
+                            <button @click="listFilterHideCompleted = !listFilterHideCompleted"
+                                    :class="listFilterHideCompleted ? 'bg-pink-500 text-white border-pink-500' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-pink-50'"
+                                    class="px-3 py-1.5 rounded-xl border text-xs font-medium transition-all cursor-pointer">
+                                <span x-text="listFilterHideCompleted ? '👁️ 已藏完成' : '👁️ 隐藏已完成'"></span>
+                            </button>
+                            <button @click="openTaskModalForCreateWithList(getActiveListId())" class="bg-pink-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md">+ 新建任务</button>
+                        </div>
                     </div>
 
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-3">
-                        <template x-for="task in tasks.filter(t => t.listId === getActiveListId())" :key="task.id">
+                        <template x-for="task in getFilteredListTasks()" :key="task.id">
                             <div class="group flex items-center justify-between p-3.5 rounded-2xl border border-gray-100 hover:bg-pink-50/20 transition-all">
                                 <div class="flex items-center space-x-3 flex-1 min-w-0">
                                     <input type="checkbox" :checked="task.completed" @change="toggleTaskComplete(task.id)" class="w-5 h-5 rounded-lg text-pink-500">
@@ -530,29 +538,43 @@
                                 </div>
                             </div>
                         </template>
-                        <div x-show="tasks.filter(t => t.listId === getActiveListId()).length === 0" class="text-center py-12 text-gray-400 text-sm">当前清单暂无任务 ✨</div>
+                        <div x-show="getFilteredListTasks().length === 0" class="text-center py-12 text-gray-400 text-sm">当前清单暂无显示的任务 ✨</div>
                     </div>
                 </div>
             </template>
 
-            <!-- 🏷️ 独立标签视图 -->
+            <!-- 🏷️ 独立标签视图（已增加“隐藏已完成”开关） -->
             <template x-if="currentView.startsWith('tag_')">
                 <div class="max-w-4xl mx-auto space-y-6">
-                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex items-center justify-between">
+                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <h2 class="text-lg font-bold text-pink-600" x-text="'#' + getActiveTagName()"></h2>
+                        <button @click="tagFilterHideCompleted = !tagFilterHideCompleted"
+                                :class="tagFilterHideCompleted ? 'bg-pink-500 text-white border-pink-500' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-pink-50'"
+                                class="px-3 py-1.5 rounded-xl border text-xs font-medium transition-all cursor-pointer">
+                            <span x-text="tagFilterHideCompleted ? '👁️ 已藏完成' : '👁️ 隐藏已完成'"></span>
+                        </button>
                     </div>
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-3">
-                        <template x-for="task in tasks.filter(t => (t.tags || []).includes(getActiveTagName()))" :key="task.id">
+                        <template x-for="task in getFilteredTagTasks()" :key="task.id">
                             <div class="group flex items-center justify-between p-3.5 rounded-2xl border border-gray-100 hover:bg-pink-50/20 transition-all">
-                                <div class="flex items-center space-x-3">
+                                <div class="flex items-center space-x-3 flex-1 min-w-0">
                                     <input type="checkbox" :checked="task.completed" @change="toggleTaskComplete(task.id)" class="w-5 h-5 rounded-lg text-pink-500">
-                                    <div>
-                                        <p class="text-sm font-medium" :class="task.completed ? 'line-through text-gray-400' : 'text-gray-800'" x-text="task.title"></p>
-                                        <span class="text-xs px-2 py-0.5 rounded font-medium text-white inline-block mt-1" :style="'background-color: ' + getListColor(task.listId)" x-text="getListName(task.listId)"></span>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium truncate" :class="task.completed ? 'line-through text-gray-400' : 'text-gray-800'" x-text="task.title"></p>
+                                        <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                            <span class="text-xs px-2 py-0.5 rounded-md font-medium text-white" :style="'background-color: ' + getListColor(task.listId)" x-text="getListName(task.listId)"></span>
+                                            <span x-show="task.dueDate" class="text-xs px-2 py-0.5 rounded-md bg-gray-100 text-gray-600" x-text="task.dueDate"></span>
+                                            <span x-show="!task.dueDate" class="text-xs px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 border border-amber-100">无日期</span>
+                                        </div>
                                     </div>
+                                </div>
+                                <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button @click="openTaskModalForEdit(task)" class="p-1.5 text-gray-400 hover:text-pink-600 rounded-lg" title="编辑">✏️</button>
+                                    <button @click="moveToTrash('task', task)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg" title="移入垃圾桶">🗑️</button>
                                 </div>
                             </div>
                         </template>
+                        <div x-show="getFilteredTagTasks().length === 0" class="text-center py-12 text-gray-400 text-sm">当前标签暂无显示的任务 ✨</div>
                     </div>
                 </div>
             </template>
@@ -686,7 +708,7 @@
                 editingFolderList: { id: '', folderId: '', name: '', color: '#FF8FAB' },
 
                 tasks: [
-                    { id: 't1', title: '完成宇宙中心基础版 2.0 移动端优化', listId: 'l1', dueDate: new Date().toISOString().split('T')[0], tags: ['💡 灵感', '工作'], completed: false }
+                    { id: 't1', title: '完成宇宙中心基础版 2.0 升级优化', listId: 'l1', dueDate: new Date().toISOString().split('T')[0], tags: ['💡 灵感', '工作'], completed: false }
                 ],
                 trashItems: [],
                 
@@ -694,6 +716,8 @@
                 editingTask: { id: '', title: '', listId: '', dueDate: '', tagsInput: '' },
                 filterHideCompleted: false,
                 filterDateType: 'all',
+                listFilterHideCompleted: false,
+                tagFilterHideCompleted: false,
 
                 habits: [
                     { id: 'h1', name: '早起喝温水', emoji: '🥤', target: 1 },
@@ -749,6 +773,24 @@
                         if (this.filterDateType === 'undated') {
                             if (t.dueDate && t.dueDate.trim() !== '') return false;
                         }
+                        return true;
+                    });
+                },
+
+                getFilteredListTasks() {
+                    let listId = this.getActiveListId();
+                    return this.tasks.filter(t => {
+                        if (t.listId !== listId) return false;
+                        if (this.listFilterHideCompleted && t.completed) return false;
+                        return true;
+                    });
+                },
+
+                getFilteredTagTasks() {
+                    let tagName = this.getActiveTagName();
+                    return this.tasks.filter(t => {
+                        if (!(t.tags || []).includes(tagName)) return false;
+                        if (this.tagFilterHideCompleted && t.completed) return false;
                         return true;
                     });
                 },
@@ -1024,7 +1066,7 @@
                     let monthTasks = listTasks.filter(t => t.dueDate && t.dueDate.startsWith(prefix));
                     let month = monthTasks.length === 0 ? 0 : Math.round((monthTasks.filter(t => t.completed).length / monthTasks.length) * 100);
                     let dayOfWeek = now.getDay() || 7, monday = new Date(now); monday.setDate(now.getDate() - dayOfWeek + 1); monday.setHours(0,0,0,0);
-                    let sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23,59,59,999);
+                    let sunday = new Date(monday); sunday.setDate(sunday.getDate() + 6); sunday.setHours(23,59,59,999);
                     let weekTasks = listTasks.filter(t => { if (!t.dueDate) return false; let d = new Date(t.dueDate); return d >= monday && d <= sunday; });
                     let week = weekTasks.length === 0 ? 0 : Math.round((weekTasks.filter(t => t.completed).length / weekTasks.length) * 100);
                     return { total, month, week };
@@ -1036,7 +1078,7 @@
                     let monthTasks = tagTasks.filter(t => t.dueDate && t.dueDate.startsWith(prefix));
                     let month = monthTasks.length === 0 ? 0 : Math.round((monthTasks.filter(t => t.completed).length / monthTasks.length) * 100);
                     let dayOfWeek = now.getDay() || 7, monday = new Date(now); monday.setDate(now.getDate() - dayOfWeek + 1); monday.setHours(0,0,0,0);
-                    let sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23,59,59,999);
+                    let sunday = new Date(monday); sunday.setDate(sunday.getDate() + 6); sunday.setHours(23,59,59,999);
                     let weekTasks = tagTasks.filter(t => { if (!t.dueDate) return false; let d = new Date(t.dueDate); return d >= monday && d <= sunday; });
                     let week = weekTasks.length === 0 ? 0 : Math.round((weekTasks.filter(t => t.completed).length / weekTasks.length) * 100);
                     return { total, month, week };
@@ -1069,7 +1111,7 @@
                     }
                 },
                 exportData() {
-                    let blob = new Blob([localStorage.getItem('universe_center_data') || '{}'], { type: 'application/json' });
+                    let blob = new Blob([localStorage.getItem('universe_center_data'] || '{}'], { type: 'application/json' });
                     let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'universe_backup.json'; a.click();
                 },
                 importData(e) {
