@@ -48,9 +48,9 @@
 </head>
 <body class="h-screen flex overflow-hidden select-none" x-data="universeApp()" x-init="initApp()">
 
-    <!-- 移动端半透明遮罩背景 -->
+    <!-- 移动端半透明遮罩背景（加固 z-index 确保点击灵敏） -->
     <div x-show="sidebarOpen" @click="sidebarOpen = false" 
-         class="fixed inset-0 bg-black/35 z-40 md:hidden backdrop-blur-xs"></div>
+         class="fixed inset-0 bg-black/35 z-40 md:hidden backdrop-blur-xs transition-opacity"></div>
 
     <!-- 侧边栏 Sidebar -->
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" 
@@ -78,7 +78,7 @@
                     { id: 'habits', name: '⚡ 习惯打卡', count: habits.length },
                     { id: 'review', name: '📊 四维复盘', count: 0 },
                     { id: 'trash', name: '🗑️ 垃圾桶', count: trashItems.length }
-                ]">
+                ]" :key="view.id">
                     <button @click="currentView = view.id; sidebarOpen = false"
                             :class="currentView === view.id ? 'bg-white text-pink-600 shadow-sm font-semibold' : 'text-gray-600 hover:bg-white/50'"
                             class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all">
@@ -185,7 +185,7 @@
     <main class="flex-1 flex flex-col h-screen overflow-hidden bg-white">
         <header class="h-16 border-b border-gray-100 flex items-center justify-between px-4 md:px-8 bg-white/80 backdrop-blur-md z-30 flex-shrink-0">
             <div class="flex items-center space-x-3">
-                <button @click="sidebarOpen = !sidebarOpen" class="md:hidden p-2 rounded-xl bg-pink-50 text-pink-600">☰</button>
+                <button @click="sidebarOpen = !sidebarOpen" class="md:hidden p-2 rounded-xl bg-pink-50 text-pink-600 cursor-pointer">☰</button>
                 <h1 class="text-lg md:text-xl font-bold text-gray-800" x-text="getViewTitle()"></h1>
             </div>
             <div class="flex items-center space-x-3">
@@ -498,7 +498,7 @@
                 </div>
             </div>
 
-            <!-- 📁 独立清单专属视图（已增加“隐藏已完成”开关） -->
+            <!-- 📁 独立清单专属视图 -->
             <template x-if="currentView.startsWith('list_')">
                 <div class="max-w-4xl mx-auto space-y-6">
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -543,7 +543,7 @@
                 </div>
             </template>
 
-            <!-- 🏷️ 独立标签视图（已增加“隐藏已完成”开关） -->
+            <!-- 🏷️ 独立标签视图 -->
             <template x-if="currentView.startsWith('tag_')">
                 <div class="max-w-4xl mx-auto space-y-6">
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -708,7 +708,7 @@
                 editingFolderList: { id: '', folderId: '', name: '', color: '#FF8FAB' },
 
                 tasks: [
-                    { id: 't1', title: '完成宇宙中心基础版 2.0 升级优化', listId: 'l1', dueDate: new Date().toISOString().split('T')[0], tags: ['💡 灵感', '工作'], completed: false }
+                    { id: 't1', title: '完成宇宙中心基础版 3.0 手机端适配修复', listId: 'l1', dueDate: new Date().toISOString().split('T')[0], tags: ['💡 灵感', '工作'], completed: false }
                 ],
                 trashItems: [],
                 
@@ -1111,7 +1111,7 @@
                     }
                 },
                 exportData() {
-                    let blob = new Blob([localStorage.getItem('universe_center_data'] || '{}'], { type: 'application/json' });
+                    let blob = new Blob([localStorage.getItem('universe_center_data') || '{}'], { type: 'application/json' });
                     let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'universe_backup.json'; a.click();
                 },
                 importData(e) {
